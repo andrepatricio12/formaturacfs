@@ -28,12 +28,19 @@
             color: #006400; /* Verde escuro */
             margin-bottom: 20px;
         }
-        .form-group input {
+        h2, h3 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group input, .form-group select {
             padding: 10px;
-            width: 150px; /* Ajustado para 8 dígitos */
             margin-bottom: 15px;
             border-radius: 5px;
             border: 1px solid #ddd;
+            width: 100%;
+        }
+        .form-group select {
+            cursor: pointer;
         }
         button {
             padding: 10px;
@@ -56,6 +63,29 @@
             text-align: center;
             margin-top: 10px;
         }
+        .report-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .report-item h3 {
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+        .report-item p {
+            margin: 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        /* Responsividade */
+        @media (max-width: 600px) {
+            .container {
+                width: 90%;
+            }
+        }
     </style>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -67,7 +97,7 @@
     <div id="login-form">
         <div class="form-group">
             <label for="matricula">Digite sua matrícula:</label>
-            <input type="text" id="matricula" placeholder="Digite sua matrícula" maxlength="8">
+            <input type="text" id="matricula" placeholder="Digite sua matrícula" maxlength="8" style="width: 150px;">
         </div>
         <button onclick="login()">Entrar</button>
         <div id="login-error" class="error hidden">Matrícula não encontrada. Por favor, tente novamente.</div>
@@ -76,22 +106,45 @@
     <div id="convidados-form" class="hidden">
         <h2 id="aluno-nome"></h2>
         <h3>Escolha seus convidados</h3>
-        <div id="convidados-container"></div>
+        <div id="convidados-container">
+            <div class="form-group">
+                <label for="posto0">Posto/Graduação:</label>
+                <select id="posto0">
+                    <option value="Sd">Sd</option>
+                    <option value="Cb">Cb</option>
+                    <option value="Sgt">Sgt</option>
+                    <option value="ST">ST</option>
+                    <option value="Ten">Ten</option>
+                    <option value="CAP">CAP</option>
+                    <option value="TC">TC</option>
+                    <option value="CEL">CEL</option>
+                </select>
+                <label for="nome0">Nome do Convidado:</label>
+                <input type="text" id="nome0" placeholder="Digite o nome completo">
+            </div>
+        </div>
         <button onclick="adicionarConvidado()">Adicionar Outro</button>
         <button onclick="salvarConvidados()">Salvar Convidados</button>
+    </div>
+
+    <div id="retaguarda" class="hidden">
+        <h2>Relatório de Convidados</h2>
+        <div id="convidados-report"></div>
     </div>
 </div>
 
 <script>
     // Configuração do Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
-        authDomain: "convites-7dd28.firebaseapp.com",
-        projectId: "convites-7dd28",
-        storageBucket: "convites-7dd28.firebaseapp.com",
-        messagingSenderId: "294544246887",
-        appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
-        measurementId: "G-HGFP0YSMLV"
+   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
+  authDomain: "convites-7dd28.firebaseapp.com",
+  projectId: "convites-7dd28",
+  storageBucket: "convites-7dd28.firebasestorage.app",
+  messagingSenderId: "294544246887",
+  appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
+  measurementId: "G-HGFP0YSMLV"
+};
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -137,6 +190,7 @@
 
     let matriculaAtual = "";
     let nomeAlunoAtual = "";
+    let convidadoIndex = 1;
 
     function login() {
         const matriculaInput = document.getElementById('matricula').value.trim();
@@ -147,9 +201,9 @@
             document.getElementById('aluno-nome').textContent = `Bem-vindo(a), ${nomeAlunoAtual}`;
             document.getElementById('login-form').classList.add('hidden');
             document.getElementById('convidados-form').classList.remove('hidden');
-            errorDiv.classList.add('hidden'); // Ocultar mensagem de erro após login bem-sucedido
+            errorDiv.classList.add('hidden');
         } else {
-            errorDiv.classList.remove('hidden'); // Mostrar mensagem de erro
+            errorDiv.classList.remove('hidden');
         }
     }
 
@@ -158,24 +212,69 @@
         const div = document.createElement('div');
         div.className = 'form-group';
         div.innerHTML = `
-            <input type="text" placeholder="Digite o nome do convidado">
+            <label for="posto${convidadoIndex}">Posto/Graduação:</label>
+            <select id="posto${convidadoIndex}">
+                <option value="Sd">Sd</option>
+                <option value="Cb">Cb</option>
+                <option value="Sgt">Sgt</option>
+                <option value="ST">ST</option>
+                <option value="Ten">Ten</option>
+                <option value="CAP">CAP</option>
+                <option value="TC">TC</option>
+                <option value="CEL">CEL</option>
+            </select>
+            <label for="nome${convidadoIndex}">Nome do Convidado:</label>
+            <input type="text" id="nome${convidadoIndex}" placeholder="Digite o nome completo">
         `;
         container.appendChild(div);
+        convidadoIndex++;
     }
 
     async function salvarConvidados() {
         const convidados = [];
-        const container = document.getElementById('convidados-container');
-        container.querySelectorAll('input').forEach(input => {
-            if (input.value.trim()) {
-                convidados.push(input.value.trim());
+        for (let i = 0; i < convidadoIndex; i++) {
+            const posto = document.getElementById(`posto${i}`);
+            const nome = document.getElementById(`nome${i}`);
+            if (posto && nome && nome.value.trim()) {
+                convidados.push({ posto: posto.value, nome: nome.value.trim() });
             }
-        });
+        }
         await db.collection('convidados').doc(matriculaAtual).set({
             aluno: nomeAlunoAtual,
             convidados
         });
         alert("Convidados salvos com sucesso!");
+    }
+
+    async function gerarRetaguarda() {
+        const reportDiv = document.getElementById('convidados-report');
+        reportDiv.innerHTML = '';
+        const snapshot = await db.collection('convidados').get();
+        const report = {};
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            data.convidados.forEach(convidado => {
+                const key = `${convidado.posto} - ${convidado.nome}`;
+                if (!report[key]) {
+                    report[key] = { count: 0, alunos: [] };
+                }
+                report[key].count++;
+                report[key].alunos.push(data.aluno);
+            });
+        });
+
+        for (const [nome, info] of Object.entries(report)) {
+            const div = document.createElement('div');
+            div.className = 'report-item';
+            div.innerHTML = `
+                <h3>${nome}</h3>
+                <p>Convites: ${info.count}</p>
+                <p>Convidado por: ${info.alunos.join(', ')}</p>
+            `;
+            reportDiv.appendChild(div);
+        }
+        document.getElementById('retaguarda').classList.remove('hidden');
     }
 </script>
 </body>
