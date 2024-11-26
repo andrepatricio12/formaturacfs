@@ -120,19 +120,20 @@
 
 <script>
    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
-  authDomain: "convites-7dd28.firebaseapp.com",
-  projectId: "convites-7dd28",
-  storageBucket: "convites-7dd28.firebasestorage.app",
-  messagingSenderId: "294544246887",
-  appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
-  measurementId: "G-HGFP0YSMLV"
-};
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
+        authDomain: "convites-7dd28.firebaseapp.com",
+        projectId: "convites-7dd28",
+        storageBucket: "convites-7dd28.firebasestorage.app",
+        messagingSenderId: "294544246887",
+        appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
+        measurementId: "G-HGFP0YSMLV"
+    };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-  
+
     const alunos = {
         "9287027": "ELIENAR FARIAS",
         "9306820": "NAZARETH LIMA GOEDERT",
@@ -173,38 +174,27 @@ const firebaseConfig = {
 
     let matriculaAtual = "";
     let nomeAlunoAtual = "";
-    let notasSalvas = {};
-
-    function login() {
-        const matriculaInput = document.getElementById('matricula').value;
-        if (alunos[matriculaInput]) {
-            matriculaAtual = matriculaInput;
-            nomeAlunoAtual = alunos[matriculaAtual];
-            document.getElementById('aluno-nome').textContent = `Bem-vindo(a), ${nomeAlunoAtual}`;
-            document.getElementById('login-form').classList.add('hidden');
-            document.getElementById('notas-form').classList.remove('hidden');
-            carregarNotas();
-        } else {
-            document.getElementById('login-error').classList.remove('hidden');
-        }
-    }
-    // Variáveis Globais
-    let matriculaAtual = "";
-    let nomeAlunoAtual = "";
-    const alunos = { /* Insira suas matrículas e nomes */ };
     let convidadoIndex = 1;
 
     // Login
     function login() {
-        const matriculaInput = document.getElementById('matricula').value;
+        const matriculaInput = document.getElementById('matricula').value.trim();
+        const errorDiv = document.getElementById('login-error');
+
         if (alunos[matriculaInput]) {
             matriculaAtual = matriculaInput;
             nomeAlunoAtual = alunos[matriculaAtual];
+
+            // Atualizar a interface
             document.getElementById('aluno-nome').textContent = `Bem-vindo(a), ${nomeAlunoAtual}`;
             document.getElementById('login-form').classList.add('hidden');
             document.getElementById('convidados-form').classList.remove('hidden');
+
+            // Ocultar a mensagem de erro, se visível
+            errorDiv.classList.add('hidden');
         } else {
-            document.getElementById('login-error').classList.remove('hidden');
+            // Mostrar mensagem de erro
+            errorDiv.classList.remove('hidden');
         }
     }
 
@@ -238,49 +228,23 @@ const firebaseConfig = {
         for (let i = 0; i < convidadoIndex; i++) {
             const posto = document.getElementById(`posto${i}`);
             const nome = document.getElementById(`nome${i}`);
-            if (posto && nome) {
-                convidados.push({ posto: posto.value, nome: nome.value });
+            if (posto && nome && nome.value.trim()) {
+                convidados.push({ posto: posto.value, nome: nome.value.trim() });
             }
         }
+
         db.collection('convidados').doc(matriculaAtual).set({
             aluno: nomeAlunoAtual,
             convidados: convidados
         }).then(() => {
-            document.getElementById('convidados-success').classList.remove('hidden');
+            const successMessage = document.getElementById('convidados-success');
+            successMessage.classList.remove('hidden');
             setTimeout(() => {
-                document.getElementById('convidados-success').classList.add('hidden');
+                successMessage.classList.add('hidden');
             }, 2000);
         });
     }
-
-    // Retaguarda
-    async function carregarRetaguarda() {
-        const agrupados = {};
-        const querySnapshot = await db.collection('convidados').get();
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            data.convidados.forEach((convidado) => {
-                if (!agrupados[convidado.nome]) {
-                    agrupados[convidado.nome] = { posto: convidado.posto, count: 0, alunos: [] };
-                }
-                agrupados[convidado.nome].count++;
-                agrupados[convidado.nome].alunos.push(data.aluno);
-            });
-        });
-
-        const container = document.getElementById('convidados-agrupados');
-        container.innerHTML = '';
-        for (const nome in agrupados) {
-            const item = agrupados[nome];
-            const div = document.createElement('div');
-            div.innerHTML = `
-                <h3>${nome} (${item.posto})</h3>
-                <p>Convites: ${item.count}</p>
-                <p>Alunos: ${item.alunos.join(', ')}</p>
-            `;
-            container.appendChild(div);
-        }
-    }
 </script>
+
 </body>
 </html>
