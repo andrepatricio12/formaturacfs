@@ -25,12 +25,12 @@
         }
         h1 {
             text-align: center;
-            color: #ff0000; /* Vermelho */
+            color: #006400; /* Verde escuro */
             margin-bottom: 20px;
         }
         .form-group input {
             padding: 10px;
-            width: 100%;
+            width: 150px; /* Ajustado para 8 dígitos */
             margin-bottom: 15px;
             border-radius: 5px;
             border: 1px solid #ddd;
@@ -67,7 +67,7 @@
     <div id="login-form">
         <div class="form-group">
             <label for="matricula">Digite sua matrícula:</label>
-            <input type="text" id="matricula" placeholder="Digite sua matrícula">
+            <input type="text" id="matricula" placeholder="Digite sua matrícula" maxlength="8">
         </div>
         <button onclick="login()">Entrar</button>
         <div id="login-error" class="error hidden">Matrícula não encontrada. Por favor, tente novamente.</div>
@@ -80,30 +80,23 @@
         <button onclick="adicionarConvidado()">Adicionar Outro</button>
         <button onclick="salvarConvidados()">Salvar Convidados</button>
     </div>
-
-    <div id="retaguarda" class="hidden">
-        <h2>Relatório de Convidados</h2>
-        <div id="convidados-report"></div>
-    </div>
 </div>
 
 <script>
     // Configuração do Firebase
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
-  authDomain: "convites-7dd28.firebaseapp.com",
-  projectId: "convites-7dd28",
-  storageBucket: "convites-7dd28.firebasestorage.app",
-  messagingSenderId: "294544246887",
-  appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
-  measurementId: "G-HGFP0YSMLV"
-};
+    const firebaseConfig = {
+        apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
+        authDomain: "convites-7dd28.firebaseapp.com",
+        projectId: "convites-7dd28",
+        storageBucket: "convites-7dd28.firebaseapp.com",
+        messagingSenderId: "294544246887",
+        appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
+        measurementId: "G-HGFP0YSMLV"
     };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Lista de alunos
     const alunos = {
         "9287027": "ELIENAR FARIAS",
         "9306820": "NAZARETH LIMA GOEDERT",
@@ -154,8 +147,9 @@ const firebaseConfig = {
             document.getElementById('aluno-nome').textContent = `Bem-vindo(a), ${nomeAlunoAtual}`;
             document.getElementById('login-form').classList.add('hidden');
             document.getElementById('convidados-form').classList.remove('hidden');
+            errorDiv.classList.add('hidden'); // Ocultar mensagem de erro após login bem-sucedido
         } else {
-            errorDiv.classList.remove('hidden');
+            errorDiv.classList.remove('hidden'); // Mostrar mensagem de erro
         }
     }
 
@@ -182,31 +176,6 @@ const firebaseConfig = {
             convidados
         });
         alert("Convidados salvos com sucesso!");
-    }
-
-    async function gerarRetaguarda() {
-        const reportDiv = document.getElementById('convidados-report');
-        reportDiv.innerHTML = '';
-        const snapshot = await db.collection('convidados').get();
-        const report = {};
-
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            data.convidados.forEach(convidado => {
-                if (!report[convidado]) {
-                    report[convidado] = { count: 0, alunos: [] };
-                }
-                report[convidado].count++;
-                report[convidado].alunos.push(data.aluno);
-            });
-        });
-
-        for (const [nome, info] of Object.entries(report)) {
-            const div = document.createElement('div');
-            div.innerHTML = `<p><b>${nome}</b>: ${info.count} convites (${info.alunos.join(', ')})</p>`;
-            reportDiv.appendChild(div);
-        }
-        document.getElementById('retaguarda').classList.remove('hidden');
     }
 </script>
 </body>
