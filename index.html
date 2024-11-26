@@ -233,10 +233,11 @@ const firebaseConfig = {
     }
 
     async function gerarRetaguarda() {
-        const report = {};
-        const reportDiv = document.getElementById('convidados-report');
-        reportDiv.innerHTML = '';
+    const report = {};
+    const reportDiv = document.getElementById('convidados-report');
+    reportDiv.innerHTML = '';
 
+    try {
         const snapshot = await db.collection('convidados').get();
         snapshot.forEach(doc => {
             const data = doc.data();
@@ -248,6 +249,11 @@ const firebaseConfig = {
             });
         });
 
+        if (Object.keys(report).length === 0) {
+            reportDiv.innerHTML = `<p>Nenhum convidado encontrado.</p>`;
+            return;
+        }
+
         for (const [convidado, info] of Object.entries(report)) {
             const div = document.createElement('div');
             div.className = 'report-item';
@@ -258,6 +264,13 @@ const firebaseConfig = {
             `;
             reportDiv.appendChild(div);
         }
+        document.getElementById('retaguarda').classList.remove('hidden');
+    } catch (error) {
+        console.error("Erro ao gerar relatório:", error);
+        alert("Houve um problema ao gerar o relatório.");
+    }
+}
+
         document.getElementById('retaguarda').classList.remove('hidden');
     }
 </script>
