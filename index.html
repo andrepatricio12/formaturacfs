@@ -232,15 +232,31 @@ const firebaseConfig = {
         alert("Convidados salvos com sucesso!");
     }
 
-    async function gerarRetaguarda() {
+   async function gerarRetaguarda() {
     const report = {};
     const reportDiv = document.getElementById('convidados-report');
-    reportDiv.innerHTML = '';
+    reportDiv.innerHTML = ''; // Limpa o relatório anterior
 
     try {
+        console.log("Carregando dados do Firestore...");
         const snapshot = await db.collection('convidados').get();
+
+        if (snapshot.empty) {
+            console.warn("Nenhum documento encontrado no Firestore.");
+            reportDiv.innerHTML = `<p>Nenhum dado disponível no momento.</p>`;
+            return;
+        }
+
+        // Processa cada documento
         snapshot.forEach(doc => {
             const data = doc.data();
+            console.log("Processando documento:", doc.id, data);
+
+            if (!data.convidados) {
+                console.warn(`Documento ${doc.id} não contém convidados.`);
+                return;
+            }
+
             data.convidados.forEach(convidado => {
                 const key = `${convidado.posto} - ${convidado.nome}`;
                 if (!report[key]) report[key] = { count: 0, alunos: [] };
@@ -249,7 +265,9 @@ const firebaseConfig = {
             });
         });
 
+        // Gera o relatório no DOM
         if (Object.keys(report).length === 0) {
+            console.warn("Nenhum convidado processado.");
             reportDiv.innerHTML = `<p>Nenhum convidado encontrado.</p>`;
             return;
         }
@@ -264,13 +282,15 @@ const firebaseConfig = {
             `;
             reportDiv.appendChild(div);
         }
+
         document.getElementById('retaguarda').classList.remove('hidden');
+        console.log("Relatório gerado com sucesso!");
     } catch (error) {
         console.error("Erro ao gerar relatório:", error);
-        alert("Houve um problema ao gerar o relatório.");
+        alert("Houve um problema ao gerar o relatório. Veja os detalhes no console.");
     }
-
 }
+
 
         document.getElementById('retaguarda').classList.remove('hidden');
     }
