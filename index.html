@@ -224,37 +224,70 @@ const firebaseConfig = {
         alert("Convidados salvos com sucesso!");
     }
 
-    async function gerarRetaguarda() {
-        const report = {};
-        const reportDiv = document.getElementById('convidados-report');
-        reportDiv.innerHTML = '';
+   async function gerarRetaguarda() {
+    const report = {};
+    const reportDiv = document.getElementById('convidados-report');
+    reportDiv.innerHTML = ''; // Limpa o relatório anterior
 
-        try {
-            const snapshot = await db.collection('convidados').get();
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                data.convidados.forEach(convidado => {
-                    const key = `${convidado.posto} - ${convidado.nome}`;
-                    if (!report[key]) report[key] = { count: 0, alunos: [] };
-                    report[key].count++;
-                    report[key].alunos.push(data.aluno);
-                });
-            });
+    try {
+        console.log("Carregando dados do Firestore...");
+        const snapshot = await db.collection('convidados').get();
 
-            for (const [convidado, info] of Object.entries(report)) {
-                const div = document.createElement('div');
-                div.className = 'report-item';
-                div.innerHTML = `
-                    <h3>${convidado}</h3>
-                    <p>Convites: ${info.count}</p>
-                    <p>Convidado por: ${info.alunos.join(', ')}</p>
-                `;
-                reportDiv.appendChild(div);
+        if (snapshot.empty) {
+            console.warn("Nenhum documento encontrado na coleção 'convidados'.");
+            reportDiv.innerHTML = `<p>Nenhum dado disponível no momento.</p>`;
+            return;
+        }
+
+        // Processa cada documento da coleção
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            console.log("Documento lido:", doc.id, data);
+
+            // Verificação para garantir que os convidados existem e são um array
+            if (!data || !Array.isArray(data.convidados)) {
+                console.warn(`Documento ${doc.id} não contém convidados válidos.`);
+                return;
             }
-            document.getElementById('retaguarda').classList.remove('hidden');
-        } catch (error) {
-            console.error("Erro ao gerar relatório:", error);
-            alert("Houve um problema ao gerar o relatório.");
+
+            data.convidados.forEach(convidado => {
+                const key = `${convidado.posto} - ${convidado.nome}`;
+                if (!report[key]) report[key] = { count: 0, alunos: [] };
+                report[key].count++;
+                report[key].alunos.push(data.aluno);
+            });
+        });
+
+        console.log("Relatório processado:", report);
+
+        if (Object.keys(report).length === 0) {
+            console.warn("Nenhum convidado processado.");
+            reportDiv.innerHTML = `<p>Nenhum convidado encontrado.</p>`;
+            return;
+        }
+
+        // Gera o relatório no DOM
+        for (const [convidado, info] of Object.entries(report)) {
+            const div = document.createElement('div');
+            div.className = 'report-item';
+            div.innerHTML = `
+                <h3>${convidado}</h3>
+                <p>Convites: ${info.count}</p>
+                <p>Convidado por: ${info.alunos.join(', ')}</p>
+            `;
+            reportDiv.appendChild(div);
+        }
+
+        document.getElementById('retaguarda').classList.remove('hidden');
+        console.log("Relatório gerado com sucesso!");
+    } catch (error) {
+        console.error("Erro ao gerar relatório:", error);
+        alert("Houve um problema ao gerar o relatório. Veja os detalhes no console.");
+    }
+}
+
+
+            
         }
     }
 </script>
