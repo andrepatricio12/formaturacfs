@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<!-- Página Inicial de Login -->
+<div id="login-form">
+    <div class="form-group">
+        <label for="matricula">Digite sua matrícula:</label>
+        <input type="text" id="matricula" placeholder="Digite sua matrícula" style="width: 80%;">
+    </div>
+    <button onclick="login()">Entrar</button>
+    <div id="login-error" class="error hidden">Matrícula não encontrada. Por favor, tente novamente.</div>
+</div>
+<!-- Página de Escolha de Convidados -->
+<div id="convidados-form" class="hidden">
+    <h2 id="aluno-nome"></h2>
+    <h3>Escolha seus convidados para a formatura</h3>
+
+    <div id="convidados-container">
+        <div class="form-group">
+            <label for="posto0">Posto/Graduação:</label>
+            <select id="posto0">
+                <option value="Sd">Sd</option>
+                <option value="Cb">Cb</option>
+                <option value="Sgt">Sgt</option>
+                <option value="ST">ST</option>
+                <option value="Ten">Ten</option>
+                <option value="CAP">CAP</option>
+                <option value="TC">TC</option>
+                <option value="CEL">CEL</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="nome0">Nome do Convidado:</label>
+            <input type="text" id="nome0" placeholder="Digite o nome completo">
+        </div>
+    </div>
+
+    <button onclick="adicionarConvidado()">Adicionar Outro</button>
+    <button onclick="salvarConvidados()">Salvar Convidados</button>
+
+    <div id="convidados-success" class="message hidden">Convidados salvos com sucesso!</div>
+</div>
+<!-- Página de Retaguarda -->
+<div id="retaguarda" class="hidden">
+    <h2>Lista de Convidados Agrupados</h2>
+    <div id="convidados-agrupados"></div>
+</div>
+</style>
+
+<script>
+
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
+  authDomain: "convites-7dd28.firebaseapp.com",
+  projectId: "convites-7dd28",
+  storageBucket: "convites-7dd28.firebasestorage.app",
+  messagingSenderId: "294544246887",
+  appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
+  measurementId: "G-HGFP0YSMLV"
+};
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+function login() {
+    const matriculaInput = document.getElementById('matricula').value;
+    if (alunos[matriculaInput]) {
+        matriculaAtual = matriculaInput;
+        nomeAlunoAtual = alunos[matriculaAtual];
+        document.getElementById('aluno-nome').textContent = `Bem-vindo(a), ${nomeAlunoAtual}`;
+        document.getElementById('login-form').classList.add('hidden');
+        document.getElementById('convidados-form').classList.remove('hidden');
+    } else {
+        document.getElementById('login-error').classList.remove('hidden');
+    }
+}
+let convidadoIndex = 1;
+
+function adicionarConvidado() {
+    const container = document.getElementById('convidados-container');
+
+    const div = document.createElement('div');
+    div.className = 'form-group';
+    div.innerHTML = `
+        <label for="posto${convidadoIndex}">Posto/Graduação:</label>
+        <select id="posto${convidadoIndex}">
+            <option value="Sd">Sd</option>
+            <option value="Cb">Cb</option>
+            <option value="Sgt">Sgt</option>
+            <option value="ST">ST</option>
+            <option value="Ten">Ten</option>
+            <option value="CAP">CAP</option>
+            <option value="TC">TC</option>
+            <option value="CEL">CEL</option>
+        </select>
+        <label for="nome${convidadoIndex}">Nome do Convidado:</label>
+        <input type="text" id="nome${convidadoIndex}" placeholder="Digite o nome completo">
+    `;
+    container.appendChild(div);
+
+    convidadoIndex++;
+}
+function salvarConvidados() {
+    const convidados = [];
+
+    for (let i = 0; i < convidadoIndex; i++) {
+        const posto = document.getElementById(`posto${i}`);
+        const nome = document.getElementById(`nome${i}`);
+
+        if (posto && nome) {
+            convidados.push({
+                posto: posto.value,
+                nome: nome.value
+            });
+        }
+    }
+
+    db.collection('convidados').doc(matriculaAtual).set({
+        aluno: nomeAlunoAtual,
+        convidados: convidados
+    }).then(() => {
+        document.getElementById('convidados-success').classList.remove('hidden');
+        setTimeout(() => {
+            document.getElementById('convidados-success').classList.add('hidden');
+        }, 2000);
+    });
+}
+async function carregarRetaguarda() {
+    const agrupados = {};
+
+    const querySnapshot = await db.collection('convidados').get();
+    querySnapshot.forEach((doc) => {
+        const data = doc.data();
+
+        data.convidados.forEach((convidado) => {
+            if (!agrupados[convidado.nome]) {
+                agrupados[convidado.nome] = { posto: convidado.posto, count: 0, alunos: [] };
+            }
+            agrupados[convidado.nome].count++;
+            agrupados[convidado.nome].alunos.push(data.aluno);
+        });
+    });
+
+    const container = document.getElementById('convidados-agrupados');
+    container.innerHTML = '';
+
+    for (const nome in agrupados) {
+        const item = agrupados[nome];
+        const div = document.createElement('div');
+        div.innerHTML = `
+            <h3>${nome} (${item.posto})</h3>
+            <p>Convites: ${item.count}</p>
+            <p>Alunos: ${item.alunos.join(', ')}</p>
+        `;
+        container.appendChild(div);
+    }
+}
+
