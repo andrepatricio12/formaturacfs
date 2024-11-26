@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Convidados</title>
+    <title>Controle de Convidados Militares</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,7 +13,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #f5f5f5;
+            background-color: #e6f7e6; /* Verde claro */
         }
         .container {
             background-color: white;
@@ -22,6 +22,15 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             max-width: 600px;
             width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #ff0000; /* Vermelho */
+            margin-bottom: 20px;
+        }
+        h2, h3 {
+            text-align: center;
+            color: #333;
         }
         .form-group {
             margin-bottom: 15px;
@@ -35,17 +44,25 @@
         button {
             padding: 10px;
             width: 100%;
-            background-color: #007bff;
+            background-color: #ff0000; /* Vermelho */
             border: none;
             border-radius: 5px;
             color: white;
+            font-size: 16px;
             cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
         }
         button:hover {
-            background-color: #0056b3;
+            background-color: #cc0000; /* Vermelho escuro */
+            transform: scale(1.05);
         }
         .hidden {
             display: none;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
         }
     </style>
     <!-- Firebase Libraries -->
@@ -54,13 +71,14 @@
 </head>
 <body>
 <div class="container">
+    <h1>\controle de Convidados Militares</h1>
     <div id="login-form">
         <div class="form-group">
             <label for="matricula">Digite sua matrícula:</label>
             <input type="text" id="matricula" placeholder="Digite sua matrícula">
         </div>
         <button onclick="login()">Entrar</button>
-        <div id="login-error" class="hidden">Matrícula não encontrada. Por favor, tente novamente.</div>
+        <div id="login-error" class="error hidden">Matrícula não encontrada. Por favor, tente novamente.</div>
     </div>
 
     <div id="convidados-form" class="hidden">
@@ -87,22 +105,22 @@
 
 <script>
     // Configuração Firebase
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
-  authDomain: "convites-7dd28.firebaseapp.com",
-  projectId: "convites-7dd28",
-  storageBucket: "convites-7dd28.firebasestorage.app",
-  messagingSenderId: "294544246887",
-  appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
-  measurementId: "G-HGFP0YSMLV"
-};
+    const firebaseConfig = {
+        apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
+        authDomain: "convites-7dd28.firebaseapp.com",
+        projectId: "convites-7dd28",
+        storageBucket: "convites-7dd28.firebaseapp.com",
+        messagingSenderId: "294544246887",
+        appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
+        measurementId: "G-HGFP0YSMLV"
+    };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
     const alunos = {
         "9287027": "ELIENAR FARIAS",
-       "9306820": "NAZARETH LIMA GOEDERT",
+        "9306820": "NAZARETH LIMA GOEDERT",
         "9303219": "CARLA DE LUCA LINHARES",
         "9287124": "LEANDRO GHELLERE",
         "9300350": "TIAGO LUIZ CLEMES",
@@ -156,11 +174,24 @@ const firebaseConfig = {
     }
 
     function adicionarConvidado() {
-        // Função já implementada
+        const container = document.getElementById('convidados-container');
+        const div = document.createElement('div');
+        div.className = 'form-group';
+        div.innerHTML = `
+            <label for="posto${matriculaAtual}">Posto/Graduação:</label>
+            <select id="posto${matriculaAtual}">
+                <option value="Sd">Sd</option>
+                <option value="Cb">Cb</option>
+                <option value="Sgt">Sgt</option>
+            </select>
+            <label for="nome${matriculaAtual}">Nome do Convidado:</label>
+            <input type="text" id="nome${matriculaAtual}" placeholder="Digite o nome completo">
+        `;
+        container.appendChild(div);
     }
 
     function salvarConvidados() {
-        // Função já implementada
+        // Função de salvar convidados no Firestore
     }
 </script>
 </body>
