@@ -28,31 +28,25 @@
             color: #ff0000; /* Vermelho */
             margin-bottom: 20px;
         }
-        h2, h3 {
-            text-align: center;
-            color: #333;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group input, .form-group select {
+        .form-group input {
             padding: 10px;
+            width: 100%;
+            margin-bottom: 15px;
             border-radius: 5px;
             border: 1px solid #ddd;
-            width: 100%;
         }
         button {
             padding: 10px;
             width: 100%;
-            background-color: #ff0000; /* Vermelho */
+            background-color: #ff0000;
+            color: white;
             border: none;
             border-radius: 5px;
-            color: white;
-            font-size: 16px;
             cursor: pointer;
+            transition: background-color 0.3s ease;
         }
         button:hover {
-            background-color: #cc0000; /* Vermelho escuro */
+            background-color: #cc0000;
         }
         .hidden {
             display: none;
@@ -62,26 +56,10 @@
             text-align: center;
             margin-top: 10px;
         }
-        .report-item {
-            margin-bottom: 15px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-        }
-        .report-item h3 {
-            margin: 0 0 5px 0;
-            color: #333;
-        }
-        .report-item p {
-            margin: 0;
-            font-size: 14px;
-            color: #555;
-        }
     </style>
-    <!-- Firebase Libraries -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 </head>
 <body>
 <div class="container">
@@ -98,20 +76,7 @@
     <div id="convidados-form" class="hidden">
         <h2 id="aluno-nome"></h2>
         <h3>Escolha seus convidados</h3>
-        <div id="convidados-container">
-            <div class="form-group">
-                <label for="posto0">Posto/Graduação:</label>
-                <select id="posto0">
-                    <option value="Sd">Sd</option>
-                    <option value="Cb">Cb</option>
-                    <option value="Sgt">Sgt</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="nome0">Nome do Convidado:</label>
-                <input type="text" id="nome0" placeholder="Digite o nome completo">
-            </div>
-        </div>
+        <div id="convidados-container"></div>
         <button onclick="adicionarConvidado()">Adicionar Outro</button>
         <button onclick="salvarConvidados()">Salvar Convidados</button>
     </div>
@@ -123,20 +88,22 @@
 </div>
 
 <script>
-    // Configuração Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
-        authDomain: "convites-7dd28.firebaseapp.com",
-        projectId: "convites-7dd28",
-        storageBucket: "convites-7dd28.firebaseapp.com",
-        messagingSenderId: "294544246887",
-        appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
-        measurementId: "G-HGFP0YSMLV"
+    // Configuração do Firebase
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
+  authDomain: "convites-7dd28.firebaseapp.com",
+  projectId: "convites-7dd28",
+  storageBucket: "convites-7dd28.firebasestorage.app",
+  messagingSenderId: "294544246887",
+  appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
+  measurementId: "G-HGFP0YSMLV"
+};
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // Lista de alunos
     const alunos = {
         "9287027": "ELIENAR FARIAS",
         "9306820": "NAZARETH LIMA GOEDERT",
@@ -197,61 +164,48 @@
         const div = document.createElement('div');
         div.className = 'form-group';
         div.innerHTML = `
-            <label for="posto${matriculaAtual}">Posto/Graduação:</label>
-            <select id="posto${matriculaAtual}">
-                <option value="Sd">Sd</option>
-                <option value="Cb">Cb</option>
-                <option value="Sgt">Sgt</option>
-            </select>
-            <label for="nome${matriculaAtual}">Nome do Convidado:</label>
-            <input type="text" id="nome${matriculaAtual}" placeholder="Digite o nome completo">
+            <input type="text" placeholder="Digite o nome do convidado">
         `;
         container.appendChild(div);
     }
 
-    function salvarConvidados() {
+    async function salvarConvidados() {
         const convidados = [];
         const container = document.getElementById('convidados-container');
-        container.querySelectorAll('.form-group').forEach((group, index) => {
-            const posto = document.getElementById(`posto${index}`);
-            const nome = document.getElementById(`nome${index}`);
-            if (posto && nome) {
-                convidados.push({ posto: posto.value, nome: nome.value.trim() });
+        container.querySelectorAll('input').forEach(input => {
+            if (input.value.trim()) {
+                convidados.push(input.value.trim());
             }
         });
-        db.collection('convidados').doc(matriculaAtual).set({
+        await db.collection('convidados').doc(matriculaAtual).set({
             aluno: nomeAlunoAtual,
             convidados
         });
+        alert("Convidados salvos com sucesso!");
     }
 
     async function gerarRetaguarda() {
-        const report = {};
+        const reportDiv = document.getElementById('convidados-report');
+        reportDiv.innerHTML = '';
         const snapshot = await db.collection('convidados').get();
+        const report = {};
+
         snapshot.forEach(doc => {
             const data = doc.data();
             data.convidados.forEach(convidado => {
-                if (!report[convidado.nome]) {
-                    report[convidado.nome] = { count: 0, alunos: [] };
+                if (!report[convidado]) {
+                    report[convidado] = { count: 0, alunos: [] };
                 }
-                report[convidado.nome].count++;
-                report[convidado.nome].alunos.push(data.aluno);
+                report[convidado].count++;
+                report[convidado].alunos.push(data.aluno);
             });
         });
 
-        const reportDiv = document.getElementById('convidados-report');
-        reportDiv.innerHTML = '';
         for (const [nome, info] of Object.entries(report)) {
             const div = document.createElement('div');
-            div.className = 'report-item';
-            div.innerHTML = `
-                <h3>${nome}</h3>
-                <p>Convites: ${info.count}</p>
-                <p>Convidado por: ${info.alunos.join(', ')}</p>
-            `;
+            div.innerHTML = `<p><b>${nome}</b>: ${info.count} convites (${info.alunos.join(', ')})</p>`;
             reportDiv.appendChild(div);
         }
-        document.getElementById('convidados-form').classList.add('hidden');
         document.getElementById('retaguarda').classList.remove('hidden');
     }
 </script>
