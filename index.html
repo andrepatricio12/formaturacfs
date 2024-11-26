@@ -110,25 +110,19 @@
         <button onclick="salvarConvidados()">Salvar Convidados</button>
         <div id="convidados-success" class="message hidden">Convidados salvos com sucesso!</div>
     </div>
-
-    <!-- Retaguarda -->
-    <div id="retaguarda" class="hidden">
-        <h2>Lista de Convidados Agrupados</h2>
-        <div id="convidados-agrupados"></div>
-    </div>
 </div>
 
 <script>
    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
-        authDomain: "convites-7dd28.firebaseapp.com",
-        projectId: "convites-7dd28",
-        storageBucket: "convites-7dd28.firebasestorage.app",
-        messagingSenderId: "294544246887",
-        appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
-        measurementId: "G-HGFP0YSMLV"
+const firebaseConfig = {
+  apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
+  authDomain: "convites-7dd28.firebaseapp.com",
+  projectId: "convites-7dd28",
+  storageBucket: "convites-7dd28.firebasestorage.app",
+  messagingSenderId: "294544246887",
+  appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
+  measurementId: "G-HGFP0YSMLV"
+};
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -176,7 +170,6 @@
     let nomeAlunoAtual = "";
     let convidadoIndex = 1;
 
-    // Login
     function login() {
         const matriculaInput = document.getElementById('matricula').value.trim();
         const errorDiv = document.getElementById('login-error');
@@ -185,20 +178,16 @@
             matriculaAtual = matriculaInput;
             nomeAlunoAtual = alunos[matriculaAtual];
 
-            // Atualizar a interface
             document.getElementById('aluno-nome').textContent = `Bem-vindo(a), ${nomeAlunoAtual}`;
             document.getElementById('login-form').classList.add('hidden');
             document.getElementById('convidados-form').classList.remove('hidden');
 
-            // Ocultar a mensagem de erro, se visível
             errorDiv.classList.add('hidden');
         } else {
-            // Mostrar mensagem de erro
             errorDiv.classList.remove('hidden');
         }
     }
 
-    // Adicionar Convidado
     function adicionarConvidado() {
         const container = document.getElementById('convidados-container');
         const div = document.createElement('div');
@@ -222,7 +211,6 @@
         convidadoIndex++;
     }
 
-    // Salvar Convidados
     function salvarConvidados() {
         const convidados = [];
         for (let i = 0; i < convidadoIndex; i++) {
@@ -245,6 +233,5 @@
         });
     }
 </script>
-
 </body>
 </html>
