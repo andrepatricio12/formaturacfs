@@ -13,14 +13,14 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #f0f5f0;
+            background-color: #f4f4f9;
         }
         .container {
             background-color: #ffffff;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
+            max-width: 700px;
             width: 100%;
         }
         h1, h2, h3 {
@@ -28,58 +28,54 @@
             color: #004d40;
         }
         .form-group {
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         .form-group input, .form-group select {
-            padding: 5px;
-            margin-bottom: 8px;
+            padding: 8px;
             border-radius: 5px;
             border: 1px solid #ddd;
-            width: 100%;
+            flex: 1;
         }
         input.small {
-            width: 60%;
+            width: 50%;
             margin: 0 auto;
-            display: block;
         }
         button {
-            padding: 8px;
-            margin: 5px;
-            background-color: #ff6666;
+            padding: 8px 12px;
+            background-color: #00796b;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            width: calc(48%);
         }
         button:hover {
-            background-color: #ff4d4d;
-        }
-        #botao-relatorio {
-            background-color: transparent;
-            color: transparent;
-            border: none;
-            width: 5px;
-            height: 5px;
-            cursor: pointer;
-        }
-        #senha-organizador {
-            display: none;
+            background-color: #00574b;
         }
         .hidden {
             display: none;
         }
-        .error {
-            color: red;
-            text-align: center;
-            margin-top: 10px;
-        }
-        .report-item {
-            margin-bottom: 15px;
+        .visualizar-convidados {
+            margin-top: 20px;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
             background-color: #f9f9f9;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .small-button {
+            padding: 5px;
+            font-size: 0.8em;
+            background-color: #ccc;
+            color: #333;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .small-button:hover {
+            background-color: #bbb;
         }
     </style>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -102,58 +98,32 @@
         <h3>Escolha seus convidados</h3>
         <p id="contador">Total de Convidados: 0</p>
         <div id="convidados-container">
-            <div class="form-group">
-                <label>Posto/Graduação:</label>
-                <select>
-                    <option value="Sd">Sd</option>
-                    <option value="Cb">Cb</option>
-                    <option value="Sgt">Sgt</option>
-                    <option value="ST">ST</option>
-                    <option value="Ten">Ten</option>
-                    <option value="CAP">CAP</option>
-                    <option value="MAJ">MAJ</option>
-                    <option value="TC">TC</option>
-                    <option value="CEL">CEL</option>
-                </select>
-                <label>Nome de Guerra:</label>
-                <input type="text" placeholder="Digite o nome de guerra" style="text-transform: uppercase;">
-                <label>
-                    <input type="checkbox"> Levará acompanhante?
-                </label>
-                <button onclick="removerConvidado(this)">Excluir</button>
-            </div>
+            <!-- Os convidados serão adicionados aqui -->
         </div>
-        <button onclick="adicionarConvidado()">+ Outro</button>
+        <button class="small-button" onclick="adicionarConvidado()">+ Adicionar Outro</button>
         <div style="display: flex; justify-content: space-between;">
             <button onclick="salvarConvidados()">Salvar</button>
             <button onclick="visualizarConvidados()">Visualizar Meus Convidados</button>
         </div>
-        <button id="botao-relatorio" onclick="mostrarSenha()"> </button>
-        <div id="senha-organizador">
-            <div class="form-group">
-                <label for="senha">Senha do Organizador:</label>
-                <input type="password" id="senha" placeholder="Senha" class="small">
-            </div>
+        <div id="senha-organizador" class="hidden">
+            <label for="senha">Senha do Organizador:</label>
+            <input type="password" id="senha" placeholder="Senha">
             <button onclick="validarSenha()">Entrar</button>
         </div>
-        <button class="hidden" id="botao-exportar" onclick="exportarRelatorio()">Exportar Relatório</button>
-    </div>
-
-    <div id="retaguarda" class="hidden">
-        <h2>Relatório de Convidados</h2>
-        <div id="convidados-report"></div>
+        <div id="visualizar-convidados" class="visualizar-convidados hidden"></div>
     </div>
 </div>
 
 <script>
+    // Configuração do Firebase
     const firebaseConfig = {
-        apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
-        authDomain: "convites-7dd28.firebaseapp.com",
-        projectId: "convites-7dd28",
-        storageBucket: "convites-7dd28.appspot.com",
-        messagingSenderId: "294544246887",
-        appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
-        measurementId: "G-HGFP0YSMLV"
+        apiKey: "sua-chave-api",
+        authDomain: "seu-dominio.firebaseapp.com",
+        projectId: "seu-projeto-id",
+        storageBucket: "seu-bucket.appspot.com",
+        messagingSenderId: "seu-sender-id",
+        appId: "seu-app-id",
+        measurementId: "seu-measurement-id"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
@@ -210,6 +180,7 @@
             document.getElementById('login-form').classList.add('hidden');
             document.getElementById('convidados-form').classList.remove('hidden');
             errorDiv.classList.add('hidden');
+            atualizarContador();
         } else {
             errorDiv.classList.remove('hidden');
         }
@@ -220,7 +191,6 @@
         const div = document.createElement('div');
         div.className = 'form-group';
         div.innerHTML = `
-            <label>Posto/Graduação:</label>
             <select>
                 <option value="Sd">Sd</option>
                 <option value="Cb">Cb</option>
@@ -232,15 +202,13 @@
                 <option value="TC">TC</option>
                 <option value="CEL">CEL</option>
             </select>
-            <label>Nome de Guerra:</label>
-            <input type="text" placeholder="Digite o nome de guerra" style="text-transform: uppercase;">
+            <input type="text" placeholder="Nome de Guerra" style="text-transform: uppercase;">
             <label>
-                <input type="checkbox"> Levará acompanhante?
+                <input type="checkbox"> Levará acompanhante
             </label>
-            <button onclick="removerConvidado(this)">Excluir</button>
+            <button class="small-button" onclick="removerConvidado(this)">X</button>
         `;
         container.appendChild(div);
-        atualizarContador();
     }
 
     function removerConvidado(button) {
@@ -276,20 +244,20 @@
     }
 
     function visualizarConvidados() {
+        const convidadosDiv = document.getElementById('visualizar-convidados');
         db.collection('convidados').doc(matriculaAtual).get().then(doc => {
             if (doc.exists) {
                 const data = doc.data();
                 const convidados = data.convidados || [];
-                alert(`Seus convidados:\n` + convidados.map(c => `${c.posto} ${c.nome} (${c.acompanhante ? 'Com Acompanhante' : 'Sem Acompanhante'})`).join('\n'));
+                convidadosDiv.innerHTML = convidados.map(c => 
+                    `<p>${c.posto} - ${c.nome.toUpperCase()} (${c.acompanhante ? 'COM ACOMPANHANTE' : 'SEM ACOMPANHANTE'})</p>`
+                ).join('');
+                convidadosDiv.classList.remove('hidden');
             } else {
-                alert("Você não possui convidados cadastrados.");
+                convidadosDiv.innerHTML = '<p>Sem convidados cadastrados.</p>';
             }
-        }).catch(error => {
-            console.error("Erro ao visualizar convidados:", error);
         });
-    }
-
-    function mostrarSenha() {
+        function mostrarSenha() {
         document.getElementById('senha-organizador').style.display = 'block';
     }
 
@@ -319,6 +287,7 @@
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    }
     }
 </script>
 </body>
