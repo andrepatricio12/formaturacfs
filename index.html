@@ -13,71 +13,66 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            background-color: #f7f7f7;
+            min-height: 100vh;
+            background-color: #eef2f7;
         }
 
         .container {
             background-color: #ffffff;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+            max-width: 800px;
             width: 100%;
         }
 
-        h1, h2, h3 {
+        h1, h3 {
             text-align: center;
             color: #2c3e50;
         }
 
         .form-group {
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         .form-group input, .form-group select {
+            width: 100%;
             padding: 10px;
-            margin-bottom: 10px;
             border-radius: 5px;
             border: 1px solid #ddd;
-            width: 100%;
+            margin-top: 5px;
         }
 
-        .form-group input[type="text"] {
-            text-transform: uppercase;
+        .form-group-inline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-group-inline input {
+            flex: 1;
+            margin-right: 10px;
         }
 
         button {
             padding: 10px;
-            margin: 5px;
             background-color: #3498db;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            width: 48%;
+            margin-top: 10px;
         }
 
         button:hover {
             background-color: #2980b9;
         }
 
-        .error {
-            color: red;
-            text-align: center;
-            margin-top: 10px;
-        }
-
-        .hidden {
-            display: none;
-        }
-
         .message-banner {
             background-color: #f39c12;
-            padding: 10px;
             color: white;
+            padding: 10px;
             text-align: center;
-            font-size: 16px;
             border-radius: 5px;
             margin-bottom: 20px;
         }
@@ -88,40 +83,22 @@
         }
 
         .checkbox-group input {
-            margin-left: 5px;
-        }
-
-        .convidados-list {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
+            margin-left: 10px;
         }
 
         .convidado-item {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
             padding: 10px;
+            margin-bottom: 10px;
             background-color: #ecf0f1;
             border-radius: 5px;
-            border: 1px solid #ddd;
-        }
-
-        .convidado-item button {
-            background-color: #e74c3c;
-            padding: 5px 10px;
-        }
-
-        .convidado-item button:hover {
-            background-color: #c0392b;
         }
 
         .counter {
             text-align: center;
             margin-top: 20px;
             font-size: 18px;
-            color: #2c3e50;
         }
     </style>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -131,21 +108,18 @@
 <body>
     <div class="container">
         <div id="login-form">
-            <div class="form-group">
-                <label for="matricula">Digite sua matrícula:</label>
-                <input type="text" id="matricula" placeholder="Digite sua matrícula" maxlength="8">
+            <div class="form-group-inline">
+                <input type="text" id="matricula" placeholder="Matrícula" maxlength="8">
+                <button onclick="login()">Entrar</button>
             </div>
-            <button onclick="login()">Entrar</button>
-            <div id="login-error" class="error hidden">Matrícula não encontrada. Por favor, tente novamente.</div>
+            <div id="login-error" class="error hidden">Matrícula inválida.</div>
         </div>
 
         <div id="convidados-form" class="hidden">
-            <h1>Controle de Convidados Militares</h1>
-            <div id="aluno-nome"></div>
-
-            <div id="message-banner" class="message-banner hidden">
-                Atenção! Digite os militares que você vai convidar para a formatura. Mesmo que outro formando convide o
-                mesmo militar, os dados serão usados para garantir uma divisão justa.
+            <h1>Controle de Convidados</h1>
+            <div id="message-banner" class="message-banner">
+                Atenção: Digite os militares que você vai convidar para a formatura.
+                Mesmo que outro formando convide o mesmo militar, os dados serão usados para uma divisão justa.
                 <button onclick="dismissMessage()">Entendi</button>
             </div>
 
@@ -164,47 +138,45 @@
                         <option value="TC">TC</option>
                         <option value="CEL">CEL</option>
                     </select>
-                    <label for="nome0">Nome de Guerra:</label>
-                    <input type="text" id="nome0" placeholder="Nome do convidado" oninput="updateName(event)">
                 </div>
 
-                <div class="checkbox-group">
-                    <label for="acompanhante0">Acompanhante:</label>
+                <div class="form-group-inline">
+                    <input type="text" id="nome0" placeholder="Nome de Guerra" oninput="updateName(event)">
+                    <label for="acompanhante0">Acompanhante?</label>
                     <input type="checkbox" id="acompanhante0">
                 </div>
             </div>
 
             <button onclick="adicionarConvidado()">+ Outro</button>
-            <div id="convidados-list" class="convidados-list"></div>
+            <div id="convidados-list"></div>
 
             <button onclick="salvarConvidados()">Salvar</button>
             <button onclick="gerarRelatorio()">Gerar Relatório</button>
-            <div class="counter">Contagem de convidados: <span id="convidados-counter">0</span></div>
-        </div>
-
-        <div id="retaguarda" class="hidden">
-            <h2>Relatório de Convidados</h2>
-            <div id="convidados-report"></div>
+            <div class="counter">Convidados: <span id="convidados-counter">0</span></div>
         </div>
     </div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
-            authDomain: "convites-7dd28.firebaseapp.com",
-            projectId: "convites-7dd28",
-            storageBucket: "convites-7dd28.appspot.com",
-            messagingSenderId: "294544246887",
-            appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
-            measurementId: "G-HGFP0YSMLV"
-        };
-
+       // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
+  authDomain: "convites-7dd28.firebaseapp.com",
+  projectId: "convites-7dd28",
+  storageBucket: "convites-7dd28.firebasestorage.app",
+  messagingSenderId: "294544246887",
+  appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
+  measurementId: "G-HGFP0YSMLV"
+};
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        const alunos = {
-             "9287027": "ELIENAR FARIAS",
-       "9306820": "NAZARETH LIMA GOEDERT",
+        let matriculaAtual = "";
+        let nomeAlunoAtual = "";
+        let convidados = [];
+
+       onst alunos = {
+        "9287027": "ELIENAR FARIAS",
+        "9306820": "NAZARETH LIMA GOEDERT",
         "9303219": "CARLA DE LUCA LINHARES",
         "9287124": "LEANDRO GHELLERE",
         "9300350": "TIAGO LUIZ CLEMES",
@@ -238,59 +210,57 @@
         "3847446": "DAIANA PEREIRA",
         "9329056": "VINICIUS JOVELINO COSTA",
         "9339477": "DANIEL SERAFIM PESSI"
-        };
+    };
 
-        let matriculaAtual = "";
-        let nomeAlunoAtual = "";
-        let convidados = [];
+    let matriculaAtual = "";
+    let nomeAlunoAtual = "";
+    let convidados = [];
 
-        function login() {
-            const matriculaInput = document.getElementById('matricula').value.trim();
-            const errorDiv = document.getElementById('login-error');
-            if (alunos[matriculaInput]) {
-                matriculaAtual = matriculaInput;
-                nomeAlunoAtual = alunos[matriculaInput];
-                document.getElementById('aluno-nome').textContent = `Bem-vindo(a), ${nomeAlunoAtual}`;
-                document.getElementById('login-form').classList.add('hidden');
-                document.getElementById('convidados-form').classList.remove('hidden');
-                errorDiv.classList.add('hidden');
-                document.getElementById('message-banner').classList.remove('hidden');
-            } else {
-                errorDiv.classList.remove('hidden');
-            }
+    function login() {
+        const matriculaInput = document.getElementById('matricula').value.trim();
+        if (alunos[matriculaInput]) {
+            matriculaAtual = matriculaInput;
+            nomeAlunoAtual = alunos[matriculaInput];
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('convidados-form').classList.remove('hidden');
+            document.getElementById('message-banner').classList.remove('hidden');
+            alert(`Bem-vindo(a), ${nomeAlunoAtual}!`);
+        } else {
+            alert("Matrícula não encontrada. Tente novamente.");
         }
+    }
+</script>
 
         function dismissMessage() {
-            document.getElementById('message-banner').classList.add('hidden');
-        }
-
-        function updateName(event) {
-            event.target.value = event.target.value.toUpperCase();
+            document.getElementById('message-banner').style.display = 'none';
         }
 
         function adicionarConvidado() {
-            const novoConvidado = {
-                posto: document.getElementById('posto0').value,
-                nome: document.getElementById('nome0').value,
-                acompanhante: document.getElementById('acompanhante0').checked
-            };
-            convidados.push(novoConvidado);
-            renderConvidados();
+            const posto = document.getElementById('posto0').value;
+            const nome = document.getElementById('nome0').value.toUpperCase();
+            const acompanhante = document.getElementById('acompanhante0').checked;
+            if (nome) {
+                convidados.push({ posto, nome, acompanhante });
+                renderConvidados();
+            }
         }
 
         function renderConvidados() {
             const convidadosList = document.getElementById('convidados-list');
             convidadosList.innerHTML = '';
             convidados.forEach((convidado, index) => {
-                const convidadoItem = document.createElement('div');
-                convidadoItem.className = 'convidado-item';
-                convidadoItem.innerHTML = `
-                    <span>${convidado.posto} ${convidado.nome} ${convidado.acompanhante ? '(Acompanhante)' : ''}</span>
-                    <button onclick="removerConvidado(${index})">Remover</button>
-                `;
-                convidadosList.appendChild(convidadoItem);
+                const item = document.createElement('div');
+                item.className = 'convidado-item';
+                item.innerHTML = `${convidado.posto} ${convidado.nome} ${convidado.acompanhante ? '(2 entradas)' : '(1 entrada)'}
+                    <button onclick="removerConvidado(${index})">Remover</button>`;
+                convidadosList.appendChild(item);
             });
-            document.getElementById('convidados-counter').textContent = convidados.length;
+            atualizarContador();
+        }
+
+        function atualizarContador() {
+            const total = convidados.reduce((acc, convidado) => acc + (convidado.acompanhante ? 2 : 1), 0);
+            document.getElementById('convidados-counter').textContent = total;
         }
 
         function removerConvidado(index) {
@@ -299,42 +269,27 @@
         }
 
         function salvarConvidados() {
-            db.collection("convites").doc(matriculaAtual).set({
-                nome: nomeAlunoAtual,
-                convidados: convidados
-            })
-            .then(() => {
-                alert("Convidados salvos com sucesso!");
-                convidados = [];
-                renderConvidados();
-            })
-            .catch((error) => {
-                alert("Erro ao salvar convidados: " + error.message);
-            });
+            db.collection("convites").doc(matriculaAtual).set({ convidados })
+                .then(() => alert('Convidados salvos com sucesso!'))
+                .catch((error) => alert('Erro ao salvar: ' + error.message));
         }
 
         function gerarRelatorio() {
-            const convidadosCount = {};
-            const alunosConvidaram = {};
-            
-            // Contando quantas vezes cada militar foi convidado e quem o convidou
-            convidados.forEach(convidado => {
-                const chave = `${convidado.posto} ${convidado.nome}`;
-                if (!convidadosCount[chave]) {
-                    convidadosCount[chave] = 0;
-                    alunosConvidaram[chave] = [];
-                }
-                convidadosCount[chave]++;
-                alunosConvidaram[chave].push(nomeAlunoAtual);
-            });
-
-            let relatorioHtml = '<ul>';
-            for (let chave in convidadosCount) {
-                relatorioHtml += `<li>${chave} - ${convidadosCount[chave]} vez(es) | Convidado(s) por: ${alunosConvidaram[chave].join(', ')}</li>`;
+            const senha = prompt("Digite a senha para acessar o relatório:");
+            if (senha === "Sgt2024ii") {
+                db.collection("convites").get().then(snapshot => {
+                    let relatorio = 'Relatório de Convidados:\n';
+                    snapshot.forEach(doc => {
+                        const data = doc.data().convidados;
+                        data.forEach(convidado => {
+                            relatorio += `Nome: ${convidado.nome} | Acompanhante: ${convidado.acompanhante ? 'Sim' : 'Não'}\n`;
+                        });
+                    });
+                    alert(relatorio);
+                });
+            } else {
+                alert("Senha incorreta!");
             }
-            relatorioHtml += '</ul>';
-            document.getElementById('convidados-report').innerHTML = relatorioHtml;
-            document.getElementById('retaguarda').classList.remove('hidden');
         }
     </script>
 </body>
