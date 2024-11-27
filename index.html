@@ -37,6 +37,10 @@
             border: 1px solid #ddd;
             width: 100%;
         }
+        #matricula {
+            width: calc(70% - 10px);
+            display: inline-block;
+        }
         button {
             padding: 8px;
             margin: 5px;
@@ -45,7 +49,8 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            width: calc(48%);
+            width: calc(28%);
+            display: inline-block;
         }
         button:hover {
             background-color: #ff4d4d;
@@ -82,8 +87,8 @@
         <div class="form-group">
             <label for="matricula">Digite sua matrícula:</label>
             <input type="text" id="matricula" placeholder="Digite sua matrícula" maxlength="8">
+            <button onclick="login()">Entrar</button>
         </div>
-        <button onclick="login()">Entrar</button>
         <div id="login-error" class="error hidden">Matrícula não encontrada. Por favor, tente novamente.</div>
     </div>
 
@@ -123,6 +128,7 @@
     <div id="retaguarda" class="hidden">
         <h2>Relatório de Convidados</h2>
         <div id="convidados-report"></div>
+        <button onclick="ocultarRelatorio()">Ocultar Relatório</button>
     </div>
 </div>
 
@@ -304,6 +310,10 @@
             console.error("Erro ao gerar relatório:", error);
             alert("Houve um problema ao gerar o relatório.");
         }
+    }
+
+    function ocultarRelatorio() {
+        document.getElementById('retaguarda').classList.add('hidden');
     }
 </script>
 </body>
