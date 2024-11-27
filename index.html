@@ -84,29 +84,28 @@
     <div id="convidados-form" class="hidden">
         <h2 id="aluno-nome"></h2>
         <h3>Escolha seus convidados</h3>
+        <p id="contador">Total de Convidados: 0</p>
         <div id="convidados-container">
             <div class="form-group">
-                <label for="posto0">Posto/Graduação:</label>
-                <select id="posto0">
-                    <option value="Sd">Sd</option>
-                    <option value="Cb">Cb</option>
-                    <option value="Sgt">Sgt</option>
-                    <option value="ST">ST</option>
-                    <option value="Ten">Ten</option>
-                    <option value="CAP">CAP</option>
-                    <option value="MAJ">MAJ</option>
-                    <option value="TC">TC</option>
-                    <option value="CEL">CEL</option>
-                </select>
-                <label for="nome0">Nome do Convidado:</label>
-                <input type="text" id="nome0" placeholder="Digite o nome completo">
+                <label>Nome de Guerra:</label>
+                <input type="text" placeholder="Digite o nome de guerra" style="text-transform: uppercase;">
+                <label>
+                    <input type="checkbox"> Levará acompanhante?
+                </label>
             </div>
         </div>
         <button onclick="adicionarConvidado()">+ Outro</button>
         <div style="display: flex; justify-content: space-between;">
             <button onclick="salvarConvidados()">Salvar</button>
-            <button onclick="gerarRetaguarda()">Relatório</button>
+            <button onclick="visualizarConvidados()">Visualizar Meus Convidados</button>
         </div>
+        <div id="senha-organizador" class="form-group">
+            <label for="senha">Senha do Organizador:</label>
+            <input type="password" id="senha" placeholder="Digite a senha">
+            <button onclick="validarSenha()">Entrar</button>
+        </div>
+        <button id="botao-relatorio" class="hidden" onclick="gerarRetaguarda()">Relatório</button>
+        <button class="hidden" id="botao-exportar" onclick="exportarRelatorio()">Exportar Relatório</button>
     </div>
 
     <div id="retaguarda" class="hidden">
@@ -131,44 +130,13 @@
 
     const alunos = {
         "9287027": "ELIENAR FARIAS",
-       "9306820": "NAZARETH LIMA GOEDERT",
-        "9303219": "CARLA DE LUCA LINHARES",
-        "9287124": "LEANDRO GHELLERE",
-        "9300350": "TIAGO LUIZ CLEMES",
-        "9288350": "MARCOS AURÉLIO LUIZ DUARTE",
+        "9306820": "NAZARETH LIMA GOEDERT",
         "9320547": "ANDRÉ LUIS PATRÍCIO",
-        "9288520": "MATHEUS ROSSI LONGO",
-        "9320555": "RICARDO MESQUITA DE MEDEIROS",
-        "9320601": "JOSÉ RENATO COSTA",
-        "9307800": "JEAN CARLOS PEREIRA MACHADO",
-        "9300600": "AILTON BOZELLO DE BITTENCOURT",
-        "9300341": "TIAGO SANTOS DE SOUZA",
-        "9316230": "RODRIGO SILVA DOS SANTOS",
-        "9308652": "ANDERSON ROVEDA",
-        "9333967": "MAYARA ZILI DA SILVA",
-        "9316221": "MARCOS ADRIANO DAL PONT",
-        "9333860": "SARAH WAGNER ZANATTA",
-        "9329730": "FELIPE LUMERTZ DA SILVA",
-        "9316116": "JAQUES ROCHA DE SOUZA",
-        "9329340": "ÉZIO FRANCISCO FERNANDES",
-        "9329382": "EDERSON FRANÇA DE MACHADO",
-        "6606032": "ROBSON GOMES HAHN",
-        "9339558": "EVANDRO ANASTÁCIO TEIXEIRA",
-        "9339329": "TIAGO ANSELMO VALNIER",
-        "9287205": "ALEXANDRE DA LUZ",
-        "9307745": "WANDERSON RICARDO DE CARVALHO",
-        "9316159": "ANDERSON DOS SANTOS ROSA",
-        "9320563": "IURI CÚRCIO CARRER",
-        "6718680": "LAURO TOGNON NETO",
-        "9330097": "PATRICK CARDOSO DE RAMOS",
-        "9330356": "BRUNA DA SILVA PIRES",
-        "3847446": "DAIANA PEREIRA",
-        "9329056": "VINICIUS JOVELINO COSTA",
-        "9339477": "DANIEL SERAFIM PESSI"
     };
 
     let matriculaAtual = "";
     let nomeAlunoAtual = "";
+    let contadorConvidados = 0;
 
     function login() {
         const matriculaInput = document.getElementById('matricula').value.trim();
@@ -190,82 +158,111 @@
         const div = document.createElement('div');
         div.className = 'form-group';
         div.innerHTML = `
-            <label>Posto/Graduação:</label>
-            <select>
-                <option value="Sd">Sd</option>
-                <option value="Cb">Cb</option>
-                <option value="Sgt">Sgt</option>
-                <option value="ST">ST</option>
-                <option value="Ten">Ten</option>
-                <option value="CAP">CAP</option>
-                <option value="MAJ">MAJ</option>
-                <option value="TC">TC</option>
-                <option value="CEL">CEL</option>
-            </select>
-            <label>Nome do Convidado:</label>
-            <input type="text" placeholder="Digite o nome completo">
+            <label>Nome de Guerra:</label>
+            <input type="text" placeholder="Digite o nome de guerra" style="text-transform: uppercase;">
+            <label>
+                <input type="checkbox"> Levará acompanhante?
+            </label>
+            <button onclick="removerConvidado(this)">Excluir</button>
         `;
         container.appendChild(div);
+        atualizarContador();
     }
 
-    async function salvarConvidados() {
+    function removerConvidado(button) {
+        button.parentElement.remove();
+        atualizarContador();
+    }
+
+    function atualizarContador() {
+        const convidadosContainer = document.getElementById('convidados-container');
+        contadorConvidados = 0;
+        convidadosContainer.querySelectorAll('.form-group').forEach(group => {
+            contadorConvidados++;
+            const checkbox = group.querySelector('input[type="checkbox"]');
+            if (checkbox && checkbox.checked) contadorConvidados++;
+        });
+        document.getElementById('contador').textContent = `Total de Convidados: ${contadorConvidados}`;
+    }
+
+    function salvarConvidados() {
         const convidados = [];
         const container = document.getElementById('convidados-container');
         container.querySelectorAll('.form-group').forEach(group => {
-            const posto = group.querySelector('select').value;
-            const nome = group.querySelector('input').value.trim();
-            if (nome) convidados.push({ posto, nome });
+            const nome = group.querySelector('input[type="text"]').value.trim();
+            const acompanhante = group.querySelector('input[type="checkbox"]').checked;
+            if (nome) convidados.push({ nome, acompanhante });
         });
-        await db.collection('convidados').doc(matriculaAtual).set({
+        db.collection('convidados').doc(matriculaAtual).set({
             aluno: nomeAlunoAtual,
             convidados
         });
         alert("Convidados salvos com sucesso!");
     }
 
+    function visualizarConvidados() {
+        db.collection('convidados').doc(matriculaAtual).get().then(doc => {
+            if (doc.exists) {
+                const data = doc.data();
+                const convidados = data.convidados || [];
+                alert(`Seus convidados:\n` + convidados.map(c => `${c.nome} (${c.acompanhante ? 'Com Acompanhante' : 'Sem Acompanhante'})`).join('\n'));
+            } else {
+                alert("Você não possui convidados cadastrados.");
+            }
+        }).catch(error => {
+            console.error("Erro ao visualizar convidados:", error);
+        });
+    }
+
+    function validarSenha() {
+        const senhaInput = document.getElementById('senha').value;
+        if (senhaInput === "Sgt2024ii") {
+            document.getElementById('botao-relatorio').classList.remove('hidden');
+            document.getElementById('botao-exportar').classList.remove('hidden');
+            alert("Acesso liberado!");
+        } else {
+            alert("Senha incorreta!");
+        }
+    }
+
     async function gerarRetaguarda() {
-        const report = {};
         const reportDiv = document.getElementById('convidados-report');
         reportDiv.innerHTML = '';
-
-        try {
-            console.log("Carregando dados do Firestore...");
-            const snapshot = await db.collection('convidados').get();
-
-            if (snapshot.empty) {
-                console.warn("Nenhum documento encontrado na coleção 'convidados'.");
-                reportDiv.innerHTML = `<p>Nenhum dado disponível no momento.</p>`;
-                return;
-            }
-
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                if (!data || !Array.isArray(data.convidados)) return;
-
-                data.convidados.forEach(convidado => {
-                    const key = `${convidado.posto} - ${convidado.nome}`;
-                    if (!report[key]) report[key] = { count: 0, alunos: [] };
-                    report[key].count++;
-                    report[key].alunos.push(data.aluno);
+        const snapshot = await db.collection('convidados').get();
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.convidados) {
+                data.convidados.forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = 'report-item';
+                    div.innerHTML = `
+                        <h3>${c.nome}</h3>
+                        <p>Convidado por: ${data.aluno}</p>
+                        <p>${c.acompanhante ? 'Com Acompanhante' : 'Sem Acompanhante'}</p>
+                    `;
+                    reportDiv.appendChild(div);
                 });
-            });
-
-            for (const [convidado, info] of Object.entries(report)) {
-                const div = document.createElement('div');
-                div.className = 'report-item';
-                div.innerHTML = `
-                    <h3>${convidado}</h3>
-                    <p>Convites: ${info.count}</p>
-                    <p>Convidado por: ${info.alunos.join(', ')}</p>
-                `;
-                reportDiv.appendChild(div);
             }
+        });
+        document.getElementById('retaguarda').classList.remove('hidden');
+    }
 
-            document.getElementById('retaguarda').classList.remove('hidden');
-        } catch (error) {
-            console.error("Erro ao gerar relatório:", error);
-            alert("Houve um problema ao gerar o relatório.");
-        }
+    async function exportarRelatorio() {
+        const snapshot = await db.collection('convidados').get();
+        let csvContent = "data:text/csv;charset=utf-8,Aluno,Nome,Com Acompanhante\n";
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            data.convidados.forEach(c => {
+                csvContent += `${data.aluno},${c.nome},${c.acompanhante ? 'Sim' : 'Não'}\n`;
+            });
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "relatorio_convidados.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 </script>
 </body>
