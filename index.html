@@ -9,128 +9,137 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f0f5f0;
+            background-color: #e3f2fd;
+            color: #2c3e50;
         }
         .container {
+            max-width: 600px;
+            margin: 20px auto;
             background-color: #ffffff;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
-            width: 100%;
         }
-        h1, h2, h3 {
+        h1, h2 {
             text-align: center;
-            color: #004d40;
+            color: #0277bd;
         }
         .form-group {
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .form-group label {
+            flex: 1;
         }
         .form-group input, .form-group select {
             padding: 8px;
-            margin-bottom: 8px;
             border-radius: 5px;
             border: 1px solid #ddd;
-            width: 100%;
+            flex: 2;
         }
         button {
-            padding: 8px;
-            margin: 5px;
-            background-color: #ff6666;
+            padding: 10px 20px;
+            background-color: #0288d1;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            width: calc(48%);
         }
         button:hover {
-            background-color: #ff4d4d;
+            background-color: #0277bd;
+        }
+        .small-button {
+            width: 48%;
         }
         .hidden {
             display: none;
         }
-        .error {
-            color: red;
-            text-align: center;
-            margin-top: 10px;
-        }
-        .report-item {
-            margin-bottom: 15px;
-            padding: 10px;
-            border: 1px solid #ddd;
+        .instructions-banner {
+            background-color: #ffcc80;
+            padding: 15px;
             border-radius: 5px;
-            background-color: #f9f9f9;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .convidados-list {
+            margin-top: 15px;
+        }
+        .convidado-item {
+            background-color: #f1f8e9;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
         }
     </style>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 </head>
 <body>
-<div class="container">
-    <h1>Controle de Convidados Militares</h1>
-    <div id="login-form">
-        <div class="form-group">
-            <label for="matricula">Digite sua matrícula:</label>
-            <input type="text" id="matricula" placeholder="Digite sua matrícula" maxlength="8">
+    <div class="container">
+        <!-- Banner de Instruções -->
+        <div id="instructions" class="instructions-banner">
+            <p>
+                Atenção, digite os militares que você vai convidar para a formatura, independente se outro formando convidará o mesmo militar.
+                Com esses dados, será feita a divisão justa e correta por todos que convidarão o referido militar.
+            </p>
+            <button onclick="dismissInstructions()">Entendido</button>
         </div>
-        <button onclick="login()">Entrar</button>
-        <div id="login-error" class="error hidden">Matrícula não encontrada. Por favor, tente novamente.</div>
-    </div>
 
-    <div id="convidados-form" class="hidden">
-        <h2 id="aluno-nome"></h2>
-        <h3>Escolha seus convidados</h3>
-        <div id="convidados-container">
+        <!-- Formulário de Login -->
+        <div id="login-form">
+            <h1>Controle de Convidados Militares</h1>
             <div class="form-group">
-                <label for="posto0">Posto/Graduação:</label>
-                <select id="posto0">
-                    <option value="Sd">Sd</option>
-                    <option value="Cb">Cb</option>
-                    <option value="Sgt">Sgt</option>
-                    <option value="ST">ST</option>
-                    <option value="Ten">Ten</option>
-                    <option value="CAP">CAP</option>
-                    <option value="MAJ">MAJ</option>
-                    <option value="TC">TC</option>
-                    <option value="CEL">CEL</option>
-                </select>
-                <label for="nome0">Nome do Convidado:</label>
-                <input type="text" id="nome0" placeholder="Digite o nome completo">
+                <input type="text" id="matricula" placeholder="Matrícula" maxlength="8" style="flex: 2;">
+                <button onclick="login()">Entrar</button>
             </div>
+            <div id="login-error" class="error hidden">Matrícula não encontrada. Por favor, tente novamente.</div>
         </div>
-        <button onclick="adicionarConvidado()">+ Outro</button>
-        <div style="display: flex; justify-content: space-between;">
+
+        <!-- Formulário de Convidados -->
+        <div id="convidados-form" class="hidden">
+            <h2 id="aluno-nome"></h2>
+            <div class="form-group">
+                <label for="nome">Nome de Guerra:</label>
+                <input type="text" id="nome" oninput="toUpperCase(this)" placeholder="NOME DE GUERRA">
+                <input type="checkbox" id="acompanhante">
+                <label for="acompanhante">Levará acompanhante?</label>
+            </div>
+            <button onclick="adicionarConvidado()" class="small-button">+ Outro</button>
+            <button onclick="removerConvidado()" class="small-button">Excluir</button>
+            <div class="convidados-list" id="convidados-list"></div>
             <button onclick="salvarConvidados()">Salvar</button>
-            <button onclick="gerarRetaguarda()">Relatório</button>
+            <button onclick="gerarRelatorio()">Relatório</button>
+        </div>
+
+        <!-- Relatório -->
+        <div id="relatorio" class="hidden">
+            <h2>Relatório de Convidados</h2>
+            <div id="convidados-report"></div>
+            <button onclick="exportarPDF()">Exportar para PDF</button>
         </div>
     </div>
 
-    <div id="retaguarda" class="hidden">
-        <h2>Relatório de Convidados</h2>
-        <div id="convidados-report"></div>
-    </div>
-</div>
+    <script>
+        // Configuração do Firebase
+       // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
+  authDomain: "convites-7dd28.firebaseapp.com",
+  projectId: "convites-7dd28",
+  storageBucket: "convites-7dd28.firebasestorage.app",
+  messagingSenderId: "294544246887",
+  appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
+  measurementId: "G-HGFP0YSMLV"
+};
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-<script>
-    // Configuração do Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
-        authDomain: "convites-7dd28.firebaseapp.com",
-        projectId: "convites-7dd28",
-        storageBucket: "convites-7dd28.appspot.com",
-        messagingSenderId: "294544246887",
-        appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
-        measurementId: "G-HGFP0YSMLV"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    const alunos = {
-        "9287027": "ELIENAR FARIAS",
+        const alunos = {
+            "9287027": "ELIENAR FARIAS",
        "9306820": "NAZARETH LIMA GOEDERT",
         "9303219": "CARLA DE LUCA LINHARES",
         "9287124": "LEANDRO GHELLERE",
@@ -165,108 +174,68 @@
         "3847446": "DAIANA PEREIRA",
         "9329056": "VINICIUS JOVELINO COSTA",
         "9339477": "DANIEL SERAFIM PESSI"
-    };
+        };
 
-    let matriculaAtual = "";
-    let nomeAlunoAtual = "";
+        let matriculaAtual = "";
+        let nomeAlunoAtual = "";
 
-    function login() {
-        const matriculaInput = document.getElementById('matricula').value.trim();
-        const errorDiv = document.getElementById('login-error');
-        if (alunos[matriculaInput]) {
-            matriculaAtual = matriculaInput;
-            nomeAlunoAtual = alunos[matriculaInput];
-            document.getElementById('aluno-nome').textContent = `Bem-vindo(a), ${nomeAlunoAtual}`;
-            document.getElementById('login-form').classList.add('hidden');
-            document.getElementById('convidados-form').classList.remove('hidden');
-            errorDiv.classList.add('hidden');
-        } else {
-            errorDiv.classList.remove('hidden');
+        function dismissInstructions() {
+            document.getElementById("instructions").classList.add("hidden");
         }
-    }
 
-    function adicionarConvidado() {
-        const container = document.getElementById('convidados-container');
-        const div = document.createElement('div');
-        div.className = 'form-group';
-        div.innerHTML = `
-            <label>Posto/Graduação:</label>
-            <select>
-                <option value="Sd">Sd</option>
-                <option value="Cb">Cb</option>
-                <option value="Sgt">Sgt</option>
-                <option value="ST">ST</option>
-                <option value="Ten">Ten</option>
-                <option value="CAP">CAP</option>
-                <option value="MAJ">MAJ</option>
-                <option value="TC">TC</option>
-                <option value="CEL">CEL</option>
-            </select>
-            <label>Nome do Convidado:</label>
-            <input type="text" placeholder="Digite o nome completo">
-        `;
-        container.appendChild(div);
-    }
-
-    async function salvarConvidados() {
-        const convidados = [];
-        const container = document.getElementById('convidados-container');
-        container.querySelectorAll('.form-group').forEach(group => {
-            const posto = group.querySelector('select').value;
-            const nome = group.querySelector('input').value.trim();
-            if (nome) convidados.push({ posto, nome });
-        });
-        await db.collection('convidados').doc(matriculaAtual).set({
-            aluno: nomeAlunoAtual,
-            convidados
-        });
-        alert("Convidados salvos com sucesso!");
-    }
-
-    async function gerarRetaguarda() {
-        const report = {};
-        const reportDiv = document.getElementById('convidados-report');
-        reportDiv.innerHTML = '';
-
-        try {
-            console.log("Carregando dados do Firestore...");
-            const snapshot = await db.collection('convidados').get();
-
-            if (snapshot.empty) {
-                console.warn("Nenhum documento encontrado na coleção 'convidados'.");
-                reportDiv.innerHTML = `<p>Nenhum dado disponível no momento.</p>`;
-                return;
+        function login() {
+            const matriculaInput = document.getElementById("matricula").value.trim();
+            const errorDiv = document.getElementById("login-error");
+            if (alunos[matriculaInput]) {
+                matriculaAtual = matriculaInput;
+                nomeAlunoAtual = alunos[matriculaInput];
+                document.getElementById("aluno-nome").textContent = `Bem-vindo(a), ${nomeAlunoAtual}`;
+                document.getElementById("login-form").classList.add("hidden");
+                document.getElementById("convidados-form").classList.remove("hidden");
+            } else {
+                errorDiv.classList.remove("hidden");
             }
-
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                if (!data || !Array.isArray(data.convidados)) return;
-
-                data.convidados.forEach(convidado => {
-                    const key = `${convidado.posto} - ${convidado.nome}`;
-                    if (!report[key]) report[key] = { count: 0, alunos: [] };
-                    report[key].count++;
-                    report[key].alunos.push(data.aluno);
-                });
-            });
-
-            for (const [convidado, info] of Object.entries(report)) {
-                const div = document.createElement('div');
-                div.className = 'report-item';
-                div.innerHTML = `
-                    <h3>${convidado}</h3>
-                    <p>Convites: ${info.count}</p>
-                    <p>Convidado por: ${info.alunos.join(', ')}</p>
-                `;
-                reportDiv.appendChild(div);
-            }
-
-            document.getElementById('retaguarda').classList.remove('hidden');
-        } catch (error) {
-            console.error("Erro ao gerar relatório:", error);
-            alert("Houve um problema ao gerar o relatório.");
         }
-    }
-</script>
+
+        function toUpperCase(input) {
+            input.value = input.value.toUpperCase();
+        }
+
+        function adicionarConvidado() {
+            const nome = document.getElementById("nome").value.trim();
+            const acompanhante = document.getElementById("acompanhante").checked;
+            if (nome) {
+                const convidadosList = document.getElementById("convidados-list");
+                const convidadoDiv = document.createElement("div");
+                convidadoDiv.className = "convidado-item";
+                convidadoDiv.textContent = `${nome} (${acompanhante ? "2 convidados" : "1 convidado"})`;
+                convidadosList.appendChild(convidadoDiv);
+            }
+        }
+
+        function removerConvidado() {
+            const convidadosList = document.getElementById("convidados-list");
+            if (convidadosList.lastChild) {
+                convidadosList.removeChild(convidadosList.lastChild);
+            }
+        }
+
+        async function salvarConvidados() {
+            // Função para salvar convidados no Firebase
+        }
+
+        function gerarRelatorio() {
+            const senha = prompt("Digite a senha:");
+            if (senha === "Sgt2024ii") {
+                // Lógica para gerar relatório
+            } else {
+                alert("Senha incorreta!");
+            }
+        }
+
+        function exportarPDF() {
+            // Função para exportar relatório em PDF
+        }
+    </script>
 </body>
 </html>
