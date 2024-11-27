@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,11 +21,11 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
-            max-width: 800px;
+            max-width: 600px;
             width: 100%;
         }
 
-        h1, h3 {
+        h1 {
             text-align: center;
             color: #2c3e50;
         }
@@ -35,10 +34,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
-        .form-group-inline input {
+        input[type="text"], select {
             flex: 1;
             padding: 10px;
             border-radius: 5px;
@@ -69,13 +68,12 @@
         }
 
         .convidado-item {
+            background-color: #ecf0f1;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            background-color: #ecf0f1;
-            border-radius: 5px;
-            margin-bottom: 5px;
         }
 
         .counter {
@@ -86,24 +84,22 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 </head>
-
 <body>
     <div class="container">
+        <h1>Controle de Convidados Militares</h1>
         <div id="login-form">
             <div class="form-group-inline">
-                <input type="text" id="matricula" placeholder="Digite sua matrícula" maxlength="8">
+                <input type="text" id="matricula" placeholder="Digite sua matrícula">
                 <button onclick="login()">Entrar</button>
             </div>
-            <div id="login-error" style="color: red; text-align: center; display: none;">Matrícula não encontrada!</div>
+            <div id="login-error" style="color: red; display: none;">Matrícula inválida!</div>
         </div>
 
         <div id="convidados-form" style="display: none;">
-            <h1>Controle de Convidados</h1>
             <div id="message-banner" class="message-banner">
-                Atenção: Digite todos os militares que você deseja convidar. Mesmo que outro formando convide o mesmo militar, os dados serão usados para uma divisão justa.
+                Atenção: Convide os militares necessários. Clique em "Entendi" para continuar.
                 <button onclick="dismissMessage()">Entendi</button>
             </div>
-            <h3>Escolha seus convidados</h3>
             <div class="form-group-inline">
                 <select id="posto">
                     <option value="Sd">Sd</option>
@@ -111,11 +107,9 @@
                     <option value="Sgt">Sgt</option>
                     <option value="ST">ST</option>
                     <option value="Ten">Ten</option>
-                    <option value="Cap">Cap</option>
                 </select>
-                <input type="text" id="nomeGuerra" placeholder="Nome de Guerra" oninput="this.value = this.value.toUpperCase()">
-                <label>Acompanhante?</label>
-                <input type="checkbox" id="acompanhante">
+                <input type="text" id="nomeGuerra" placeholder="Nome de Guerra" style="text-transform: uppercase;">
+                <input type="checkbox" id="acompanhante"> Acompanhante?
             </div>
             <button onclick="adicionarConvidado()">Adicionar Convidado</button>
             <div id="convidados-list"></div>
@@ -126,7 +120,7 @@
     </div>
 
     <script>
-        c// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
   authDomain: "convites-7dd28.firebaseapp.com",
@@ -139,7 +133,8 @@ const firebaseConfig = {
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        const alunos = {
+        const alunos = 
+        {
             "9287027": "ELIENAR FARIAS",
         "9306820": "NAZARETH LIMA GOEDERT",
         "9303219": "CARLA DE LUCA LINHARES",
@@ -174,8 +169,7 @@ const firebaseConfig = {
         "9330356": "BRUNA DA SILVA PIRES",
         "3847446": "DAIANA PEREIRA",
         "9329056": "VINICIUS JOVELINO COSTA",
-        "9339477": "DANIEL SERAFIM PESSI"
-        };
+        "9339477": "DANIEL SERAFIM PESSI" }; // Altere para mais alunos
 
         let matriculaAtual = "";
         let convidados = [];
@@ -186,7 +180,6 @@ const firebaseConfig = {
                 matriculaAtual = matricula;
                 document.getElementById("login-form").style.display = "none";
                 document.getElementById("convidados-form").style.display = "block";
-                alert(`Bem-vindo(a), ${alunos[matricula]}!`);
             } else {
                 document.getElementById("login-error").style.display = "block";
             }
@@ -207,17 +200,17 @@ const firebaseConfig = {
         }
 
         function atualizarLista() {
-            const list = document.getElementById("convidados-list");
-            list.innerHTML = "";
+            const lista = document.getElementById("convidados-list");
+            lista.innerHTML = "";
             let total = 0;
             convidados.forEach((convidado, index) => {
-                const elemento = document.createElement("div");
-                elemento.className = "convidado-item";
-                elemento.innerHTML = `
+                const item = document.createElement("div");
+                item.className = "convidado-item";
+                item.innerHTML = `
                     <span>${convidado.posto} ${convidado.nome} (${convidado.acompanhante ? "2 entradas" : "1 entrada"})</span>
                     <button onclick="removerConvidado(${index})">Remover</button>
                 `;
-                list.appendChild(elemento);
+                lista.appendChild(item);
                 total += convidado.acompanhante ? 2 : 1;
             });
             document.getElementById("convidados-counter").textContent = total;
@@ -230,19 +223,18 @@ const firebaseConfig = {
 
         function salvarConvidados() {
             db.collection("convites").doc(matriculaAtual).set({ convidados })
-                .then(() => alert("Convidados salvos com sucesso!"))
-                .catch(error => alert("Erro ao salvar: " + error.message));
+                .then(() => alert("Convidados salvos!"))
+                .catch((error) => alert("Erro ao salvar: " + error.message));
         }
 
         function gerarRelatorio() {
             const senha = prompt("Digite a senha:");
             if (senha === "Sgt2024ii") {
                 db.collection("convites").get().then(snapshot => {
-                    let relatorio = "";
+                    let relatorio = "Relatório:\n";
                     snapshot.forEach(doc => {
-                        const data = doc.data().convidados;
-                        data.forEach(convidado => {
-                            relatorio += `Nome: ${convidado.nome}, Acompanhante: ${convidado.acompanhante ? "Sim" : "Não"}\n`;
+                        doc.data().convidados.forEach(c => {
+                            relatorio += `${c.posto} ${c.nome} - Acompanhante: ${c.acompanhante ? "Sim" : "Não"}\n`;
                         });
                     });
                     alert(relatorio);
@@ -253,5 +245,4 @@ const firebaseConfig = {
         }
     </script>
 </body>
-
 </html>
