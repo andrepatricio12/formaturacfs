@@ -39,10 +39,6 @@
             border: 1px solid #ddd;
             flex: 1;
         }
-        input.small {
-            width: 50%;
-            margin: 0 auto;
-        }
         button {
             padding: 8px 12px;
             background-color: #00796b;
@@ -66,17 +62,6 @@
             max-height: 200px;
             overflow-y: auto;
         }
-        .small-button {
-            padding: 5px;
-            font-size: 0.8em;
-            background-color: #ccc;
-            color: #333;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-        .small-button:hover {
-            background-color: #bbb;
-        }
     </style>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -87,7 +72,7 @@
     <div id="login-form">
         <div class="form-group">
             <label for="matricula">Digite sua matrícula:</label>
-            <input type="text" id="matricula" placeholder="Matrícula" class="small" maxlength="8">
+            <input type="text" id="matricula" placeholder="Matrícula" maxlength="8">
         </div>
         <button onclick="login()">Entrar</button>
         <div id="login-error" class="error hidden">Matrícula não encontrada. Por favor, tente novamente.</div>
@@ -97,46 +82,34 @@
         <h2 id="aluno-nome"></h2>
         <h3>Escolha seus convidados</h3>
         <p id="contador">Total de Convidados: 0</p>
-        <div id="convidados-container">
-            <!-- Os convidados serão adicionados aqui -->
-        </div>
+        <div id="convidados-container"></div>
         <button class="small-button" onclick="adicionarConvidado()">+ Adicionar Outro</button>
         <div style="display: flex; justify-content: space-between;">
             <button onclick="salvarConvidados()">Salvar</button>
             <button onclick="visualizarConvidados()">Visualizar Meus Convidados</button>
+            <button id="botao-exportar" class="hidden" onclick="exportarRelatorio()">Exportar Relatório</button>
         </div>
         <div id="senha-organizador" class="hidden">
             <label for="senha">Senha do Organizador:</label>
             <input type="password" id="senha" placeholder="Senha">
             <button onclick="validarSenha()">Entrar</button>
         </div>
-        <div id="visualizar-convidados" .hidden {
-    display: none;
-}
-class="visualizar-convidados hidden"></div> 
-        <button id="botao-exportar" class="hidden" onclick="exportarRelatorio()">Exportar Relatório</button>
-        <div style="display: flex; justify-content: space-between;">
-    <button onclick="salvarConvidados()">Salvar</button>
-    <button onclick="visualizarConvidados()">Visualizar Meus Convidados</button>
-    <button id="botao-exportar" class="hidden" onclick="exportarRelatorio()">Exportar Relatório</button>
-</div>
-
+        <div id="visualizar-convidados" class="visualizar-convidados hidden"></div>
     </div>
 </div>
-    
-    
 
 <script>
     // Configuração do Firebase
-    const firebaseConfig = {
-        apiKey: "sua-chave-api",
-        authDomain: "seu-dominio.firebaseapp.com",
-        projectId: "seu-projeto-id",
-        storageBucket: "seu-bucket.appspot.com",
-        messagingSenderId: "seu-sender-id",
-        appId: "seu-app-id",
-        measurementId: "seu-measurement-id"
-    };
+   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
+  authDomain: "convites-7dd28.firebaseapp.com",
+  projectId: "convites-7dd28",
+  storageBucket: "convites-7dd28.firebasestorage.app",
+  messagingSenderId: "294544246887",
+  appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
+  measurementId: "G-HGFP0YSMLV"
+};
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
@@ -256,25 +229,25 @@ class="visualizar-convidados hidden"></div>
     }
 
     function visualizarConvidados() {
-    const convidadosDiv = document.getElementById('visualizar-convidados');
-    db.collection('convidados').doc(matriculaAtual).get().then(doc => {
-        if (doc.exists) {
-            const data = doc.data();
-            const convidados = data.convidados || [];
-            convidadosDiv.innerHTML = convidados.map(c =>
-                `<p>${c.posto} - ${c.nome.toUpperCase()} (${c.acompanhante ? 'COM ACOMPANHANTE' : 'SEM ACOMPANHANTE'})</p>`
-            ).join('');
-            convidadosDiv.classList.remove('hidden');
-        } else {
-            convidadosDiv.innerHTML = '<p>Sem convidados cadastrados.</p>';
-        }
-    });
-    
+        const convidadosDiv = document.getElementById('visualizar-convidados');
+        db.collection('convidados').doc(matriculaAtual).get().then(doc => {
+            if (doc.exists) {
+                const data = doc.data();
+                const convidados = data.convidados || [];
+                convidadosDiv.innerHTML = convidados.map(c => 
+                    `<p>${c.posto} - ${c.nome.toUpperCase()} (${c.acompanhante ? 'COM ACOMPANHANTE' : 'SEM ACOMPANHANTE'})</p>`
+                ).join('');
+                convidadosDiv.classList.remove('hidden');
+            } else {
+                convidadosDiv.innerHTML = '<p>Sem convidados cadastrados.</p>';
+            }
+        });
     }
-    
-function mostrarSenha() {
+
+    function mostrarSenha() {
         document.getElementById('senha-organizador').style.display = 'block';
-}
+    }
+
     function validarSenha() {
         const senhaInput = document.getElementById('senha').value;
         if (senhaInput === "Sgt2024ii") {
@@ -301,7 +274,6 @@ function mostrarSenha() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-    }
     }
 </script>
 </body>
