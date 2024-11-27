@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,237 +13,316 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            background-color: #eef2f7;
+            height: 100vh;
+            background-color: #eaeaea;
         }
 
         .container {
             background-color: #ffffff;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             max-width: 600px;
             width: 100%;
         }
 
-        h1 {
+        h1, h2, h3 {
             text-align: center;
-            color: #2c3e50;
+            color: #34495e;
         }
 
-        .form-group-inline {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
+        .form-group {
+            margin-bottom: 10px;
         }
 
-        input[type="text"], select {
-            flex: 1;
+        .form-group input, .form-group select {
             padding: 10px;
+            margin-bottom: 10px;
             border-radius: 5px;
             border: 1px solid #ddd;
-            margin-right: 10px;
+            width: calc(100% - 22px);
+        }
+
+        #matricula {
+            width: 70%;
+            display: inline-block;
         }
 
         button {
             padding: 10px;
+            margin: 5px;
             background-color: #3498db;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            width: 20%;
         }
 
         button:hover {
             background-color: #2980b9;
         }
 
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
         .message-banner {
             background-color: #f39c12;
-            color: white;
             padding: 10px;
+            color: white;
             text-align: center;
+            font-size: 16px;
             border-radius: 5px;
             margin-bottom: 20px;
         }
 
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+        }
+
+        .checkbox-group input {
+            margin-left: 5px;
+        }
+
+        .convidados-list {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
         .convidado-item {
-            background-color: #ecf0f1;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            border: 1px solid #ddd;
         }
 
         .counter {
             text-align: center;
             margin-top: 20px;
+            font-size: 18px;
+            color: #2c3e50;
         }
     </style>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 </head>
+
 <body>
     <div class="container">
-        <h1>Controle de Convidados Militares</h1>
         <div id="login-form">
-            <div class="form-group-inline">
-                <input type="text" id="matricula" placeholder="Digite sua matrícula">
+            <div class="form-group">
+                <label for="matricula">Digite sua matrícula:</label>
+                <input type="text" id="matricula" placeholder="Digite sua matrícula" maxlength="8">
                 <button onclick="login()">Entrar</button>
             </div>
-            <div id="login-error" style="color: red; display: none;">Matrícula inválida!</div>
+            <div id="login-error" class="error hidden">Matrícula não encontrada. Por favor, tente novamente.</div>
         </div>
 
-        <div id="convidados-form" style="display: none;">
-            <div id="message-banner" class="message-banner">
-                Atenção: Convide os militares necessários. Clique em "Entendi" para continuar.
+        <div id="convidados-form" class="hidden">
+            <h1>Controle de Convidados Militares</h1>
+            <div id="aluno-nome"></div>
+
+            <div id="message-banner" class="message-banner hidden">
+                Atenção! Digite os militares que você vai convidar para a formatura. Mesmo que outro formando convide o mesmo militar, os dados serão usados para garantir uma divisão justa.
                 <button onclick="dismissMessage()">Entendi</button>
             </div>
-            <div class="form-group-inline">
-                <select id="posto">
-                    <option value="Sd">Sd</option>
-                    <option value="Cb">Cb</option>
-                    <option value="Sgt">Sgt</option>
-                    <option value="ST">ST</option>
-                    <option value="Ten">Ten</option>
-                </select>
-                <input type="text" id="nomeGuerra" placeholder="Nome de Guerra" style="text-transform: uppercase;">
-                <input type="checkbox" id="acompanhante"> Acompanhante?
+
+            <h3>Escolha seus convidados</h3>
+            <div id="convidados-container">
+                <div class="form-group">
+                    <label for="posto0">Posto/Graduação:</label>
+                    <select id="posto0">
+                        <option value="Sd">Sd</option>
+                        <option value="Cb">Cb</option>
+                        <option value="Sgt">Sgt</option>
+                        <option value="ST">ST</option>
+                        <option value="Ten">Ten</option>
+                        <option value="CAP">CAP</option>
+                        <option value="MAJ">MAJ</option>
+                        <option value="TC">TC</option>
+                        <option value="CEL">CEL</option>
+                    </select>
+                    <label for="nome0">Nome de Guerra:</label>
+                    <input type="text" id="nome0" placeholder="Nome do convidado" oninput="updateName(event)">
+                    <div class="checkbox-group">
+                        <label for="acompanhante0">Acompanhante:</label>
+                        <input type="checkbox" id="acompanhante0">
+                    </div>
+                </div>
+
+                <button onclick="adicionarConvidado()">+ Outro</button>
+                <button onclick="gerarRelatorio()">Gerar Relatório</button>
+                <div id="convidados-list" class="convidados-list"></div>
+                <div class="counter">Contagem de convidados: <span id="convidados-counter">0</span></div>
             </div>
-            <button onclick="adicionarConvidado()">Adicionar Convidado</button>
-            <div id="convidados-list"></div>
-            <div class="counter">Total de convidados: <span id="convidados-counter">0</span></div>
-            <button onclick="salvarConvidados()">Salvar</button>
-            <button onclick="gerarRelatorio()">Gerar Relatório</button>
+        </div>
+
+        <div id="retaguarda" class="hidden">
+            <h2>Relatório de Convidados</h2>
+            <div id="convidados-report"></div>
         </div>
     </div>
 
     <script>
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
-  authDomain: "convites-7dd28.firebaseapp.com",
-  projectId: "convites-7dd28",
-  storageBucket: "convites-7dd28.firebasestorage.app",
-  messagingSenderId: "294544246887",
-  appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
-  measurementId: "G-HGFP0YSMLV"
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
+            authDomain: "convites-7dd28.firebaseapp.com",
+            projectId: "convites-7dd28",
+            storageBucket: "convites-7dd28.appspot.com",
+            messagingSenderId: "294544246887",
+            appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
+            measurementId: "G-HGFP0YSMLV"
+        };
+
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        const alunos = 
-        {
+        const alunos = {
             "9287027": "ELIENAR FARIAS",
-        "9306820": "NAZARETH LIMA GOEDERT",
-        "9303219": "CARLA DE LUCA LINHARES",
-        "9287124": "LEANDRO GHELLERE",
-        "9300350": "TIAGO LUIZ CLEMES",
-        "9288350": "MARCOS AURÉLIO LUIZ DUARTE",
-        "9320547": "ANDRÉ LUIS PATRÍCIO",
-        "9288520": "MATHEUS ROSSI LONGO",
-        "9320555": "RICARDO MESQUITA DE MEDEIROS",
-        "9320601": "JOSÉ RENATO COSTA",
-        "9307800": "JEAN CARLOS PEREIRA MACHADO",
-        "9300600": "AILTON BOZELLO DE BITTENCOURT",
-        "9300341": "TIAGO SANTOS DE SOUZA",
-        "9316230": "RODRIGO SILVA DOS SANTOS",
-        "9308652": "ANDERSON ROVEDA",
-        "9333967": "MAYARA ZILI DA SILVA",
-        "9316221": "MARCOS ADRIANO DAL PONT",
-        "9333860": "SARAH WAGNER ZANATTA",
-        "9329730": "FELIPE LUMERTZ DA SILVA",
-        "9316116": "JAQUES ROCHA DE SOUZA",
-        "9329340": "ÉZIO FRANCISCO FERNANDES",
-        "9329382": "EDERSON FRANÇA DE MACHADO",
-        "6606032": "ROBSON GOMES HAHN",
-        "9339558": "EVANDRO ANASTÁCIO TEIXEIRA",
-        "9339329": "TIAGO ANSELMO VALNIER",
-        "9287205": "ALEXANDRE DA LUZ",
-        "9307745": "WANDERSON RICARDO DE CARVALHO",
-        "9316159": "ANDERSON DOS SANTOS ROSA",
-        "9320563": "IURI CÚRCIO CARRER",
-        "6718680": "LAURO TOGNON NETO",
-        "9330097": "PATRICK CARDOSO DE RAMOS",
-        "9330356": "BRUNA DA SILVA PIRES",
-        "3847446": "DAIANA PEREIRA",
-        "9329056": "VINICIUS JOVELINO COSTA",
-        "9339477": "DANIEL SERAFIM PESSI" }; // Altere para mais alunos
+            "9306820": "NAZARETH LIMA GOEDERT",
+            "9303219": "CARLA DE LUCA LINHARES",
+            "9287124": "LEANDRO GHELLERE",
+            "9300350": "TIAGO LUIZ CLEMES",
+            "9288350": "MARCOS AURÉLIO LUIZ DUARTE",
+            "9320547": "ANDRÉ LUIS PATRÍCIO",
+            "9288520": "MATHEUS ROSSI LONGO",
+            "9320555": "RICARDO MESQUITA DE MEDEIROS",
+            "9320601": "JOSÉ RENATO COSTA",
+            "9307800": "JEAN CARLOS PEREIRA MACHADO",
+            "9300600": "AILTON BOZELLO DE BITTENCOURT",
+            "9300341": "TIAGO SANTOS DE SOUZA",
+            "9316230": "RODRIGO SILVA DOS SANTOS",
+            "9308652": "ANDERSON ROVEDA",
+            "9333967": "MAYARA ZILI DA SILVA",
+            "9316221": "MARCOS ADRIANO DAL PONT",
+            "9333860": "SARAH WAGNER ZANATTA",
+            "9329730": "FELIPE LUMERTZ DA SILVA",
+            "9316116": "JAQUES ROCHA DE SOUZA",
+            "9329340": "ÉZIO FRANCISCO FERNANDES",
+            "9329382": "EDERSON FRANÇA DE MACHADO",
+            "6606032": "ROBSON GOMES HAHN",
+            "9339558": "EVANDRO ANASTÁCIO TEIXEIRA",
+            "9339329": "TIAGO ANSELMO VALNIER",
+            "9287205": "ALEXANDRE DA LUZ",
+            "9307745": "WANDERSON RICARDO DE CARVALHO",
+            "9316159": "ANDERSON DOS SANTOS ROSA",
+            "9320563": "IURI CÚRCIO CARRER",
+            "6718680": "LAURO TOGNON NETO",
+            "9330097": "PATRICK CARDOSO DE RAMOS",
+            "9330356": "BRUNA DA SILVA PIRES",
+            "3847446": "DAIANA PEREIRA",
+            "9329056": "VINICIUS JOVELINO COSTA",
+            "9339477": "DANIEL SERAFIM PESSI"
+        };
 
         let matriculaAtual = "";
+        let nomeAlunoAtual = "";
         let convidados = [];
 
         function login() {
-            const matricula = document.getElementById("matricula").value.trim();
-            if (alunos[matricula]) {
-                matriculaAtual = matricula;
-                document.getElementById("login-form").style.display = "none";
-                document.getElementById("convidados-form").style.display = "block";
+            const matriculaInput = document.getElementById('matricula').value.trim();
+            const errorDiv = document.getElementById('login-error');
+            if (alunos[matriculaInput]) {
+                matriculaAtual = matriculaInput;
+                nomeAlunoAtual = alunos[matriculaInput];
+                document.getElementById('aluno-nome').textContent = `Bem-vindo(a), ${nomeAlunoAtual}`;
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('convidados-form').classList.remove('hidden');
+                errorDiv.classList.add('hidden');
+                document.getElementById('message-banner').classList.remove('hidden');
+                atualizarContador();
             } else {
-                document.getElementById("login-error").style.display = "block";
+                errorDiv.classList.remove('hidden');
             }
         }
 
         function dismissMessage() {
-            document.getElementById("message-banner").style.display = "none";
+            document.getElementById('message-banner').classList.add('hidden');
+        }
+
+        function updateName(event) {
+            event.target.value = event.target.value.toUpperCase();
         }
 
         function adicionarConvidado() {
-            const posto = document.getElementById("posto").value;
-            const nome = document.getElementById("nomeGuerra").value;
-            const acompanhante = document.getElementById("acompanhante").checked;
-            if (nome) {
-                convidados.push({ posto, nome, acompanhante });
-                atualizarLista();
-            }
+            const novoConvidado = {
+                posto: document.getElementById('posto0').value,
+                nome: document.getElementById('nome0').value,
+                acompanhante: document.getElementById('acompanhante0').checked
+            };
+            convidados.push(novoConvidado);
+            renderConvidados();
+            atualizarContador();
         }
 
-        function atualizarLista() {
-            const lista = document.getElementById("convidados-list");
-            lista.innerHTML = "";
-            let total = 0;
+        function renderConvidados() {
+            const convidadosList = document.getElementById('convidados-list');
+            convidadosList.innerHTML = '';
             convidados.forEach((convidado, index) => {
-                const item = document.createElement("div");
-                item.className = "convidado-item";
-                item.innerHTML = `
-                    <span>${convidado.posto} ${convidado.nome} (${convidado.acompanhante ? "2 entradas" : "1 entrada"})</span>
+                const convidadoItem = document.createElement('div');
+                convidadoItem.className = 'convidado-item';
+                convidadoItem.innerHTML = `
+                    <span>${convidado.posto} ${convidado.nome} ${convidado.acompanhante ? '(Acompanhante)' : ''}</span>
                     <button onclick="removerConvidado(${index})">Remover</button>
                 `;
-                lista.appendChild(item);
-                total += convidado.acompanhante ? 2 : 1;
+                convidadosList.appendChild(convidadoItem);
             });
-            document.getElementById("convidados-counter").textContent = total;
+        }
+
+        function atualizarContador() {
+            const totalConvidados = convidados.reduce((acc, convidado) => {
+                return acc + (convidado.acompanhante ? 2 : 1);
+            }, 0);
+            document.getElementById('convidados-counter').textContent = totalConvidados;
         }
 
         function removerConvidado(index) {
             convidados.splice(index, 1);
-            atualizarLista();
-        }
-
-        function salvarConvidados() {
-            db.collection("convites").doc(matriculaAtual).set({ convidados })
-                .then(() => alert("Convidados salvos!"))
-                .catch((error) => alert("Erro ao salvar: " + error.message));
+            renderConvidados();
+            atualizarContador();
         }
 
         function gerarRelatorio() {
-            const senha = prompt("Digite a senha:");
+            const senha = prompt("Digite a senha para acessar o relatório:");
             if (senha === "Sgt2024ii") {
-                db.collection("convites").get().then(snapshot => {
-                    let relatorio = "Relatório:\n";
-                    snapshot.forEach(doc => {
-                        doc.data().convidados.forEach(c => {
-                            relatorio += `${c.posto} ${c.nome} - Acompanhante: ${c.acompanhante ? "Sim" : "Não"}\n`;
-                        });
-                    });
-                    alert(relatorio);
+                const convidadosCount = {};
+                const alunosConvidaram = {};
+                
+                convidados.forEach(convidado => {
+                    const chave = `${convidado.posto} ${convidado.nome}`;
+                    if (!convidadosCount[chave]) {
+                        convidadosCount[chave] = 0;
+                        alunosConvidaram[chave] = [];
+                    }
+                    convidadosCount[chave]++;
+                    alunosConvidaram[chave].push(nomeAlunoAtual);
                 });
+
+                let relatorioHtml = '<ul>';
+                for (let chave in convidadosCount) {
+                    relatorioHtml += `<li>${chave} - ${convidadosCount[chave]} vez(es) | Convidado(s) por: ${alunosConvidaram[chave].join(', ')}</li>`;
+                }
+                relatorioHtml += '</ul>';
+                document.getElementById('convidados-report').innerHTML = relatorioHtml;
+                document.getElementById('retaguarda').classList.remove('hidden');
             } else {
                 alert("Senha incorreta!");
             }
         }
     </script>
 </body>
+
 </html>
