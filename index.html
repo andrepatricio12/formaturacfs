@@ -110,9 +110,21 @@
             <input type="password" id="senha" placeholder="Senha">
             <button onclick="validarSenha()">Entrar</button>
         </div>
-        <div id="visualizar-convidados" class="visualizar-convidados hidden"></div>
+        <div id="visualizar-convidados" .hidden {
+    display: none;
+}
+class="visualizar-convidados hidden"></div> 
+        <button id="botao-exportar" class="hidden" onclick="exportarRelatorio()">Exportar Relatório</button>
+        <div style="display: flex; justify-content: space-between;">
+    <button onclick="salvarConvidados()">Salvar</button>
+    <button onclick="visualizarConvidados()">Visualizar Meus Convidados</button>
+    <button id="botao-exportar" class="hidden" onclick="exportarRelatorio()">Exportar Relatório</button>
+</div>
+
     </div>
 </div>
+    
+    
 
 <script>
     // Configuração do Firebase
@@ -244,23 +256,25 @@
     }
 
     function visualizarConvidados() {
-        const convidadosDiv = document.getElementById('visualizar-convidados');
-        db.collection('convidados').doc(matriculaAtual).get().then(doc => {
-            if (doc.exists) {
-                const data = doc.data();
-                const convidados = data.convidados || [];
-                convidadosDiv.innerHTML = convidados.map(c => 
-                    `<p>${c.posto} - ${c.nome.toUpperCase()} (${c.acompanhante ? 'COM ACOMPANHANTE' : 'SEM ACOMPANHANTE'})</p>`
-                ).join('');
-                convidadosDiv.classList.remove('hidden');
-            } else {
-                convidadosDiv.innerHTML = '<p>Sem convidados cadastrados.</p>';
-            }
-        });
-        function mostrarSenha() {
-        document.getElementById('senha-organizador').style.display = 'block';
+    const convidadosDiv = document.getElementById('visualizar-convidados');
+    db.collection('convidados').doc(matriculaAtual).get().then(doc => {
+        if (doc.exists) {
+            const data = doc.data();
+            const convidados = data.convidados || [];
+            convidadosDiv.innerHTML = convidados.map(c =>
+                `<p>${c.posto} - ${c.nome.toUpperCase()} (${c.acompanhante ? 'COM ACOMPANHANTE' : 'SEM ACOMPANHANTE'})</p>`
+            ).join('');
+            convidadosDiv.classList.remove('hidden');
+        } else {
+            convidadosDiv.innerHTML = '<p>Sem convidados cadastrados.</p>';
+        }
+    });
+    
     }
-
+    
+function mostrarSenha() {
+        document.getElementById('senha-organizador').style.display = 'block';
+}
     function validarSenha() {
         const senhaInput = document.getElementById('senha').value;
         if (senhaInput === "Sgt2024ii") {
