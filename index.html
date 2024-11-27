@@ -14,7 +14,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #eaeaea;
+            background-color: #f4f6f9;
         }
 
         .container {
@@ -28,7 +28,7 @@
 
         h1, h2, h3 {
             text-align: center;
-            color: #34495e;
+            color: #2c3e50;
         }
 
         .form-group {
@@ -39,7 +39,7 @@
             padding: 10px;
             margin-bottom: 10px;
             border-radius: 5px;
-            border: 1px solid #ddd;
+            border: 1px solid #ccc;
             width: calc(100% - 22px);
         }
 
@@ -51,7 +51,7 @@
         button {
             padding: 10px;
             margin: 5px;
-            background-color: #3498db;
+            background-color: #2980b9;
             color: white;
             border: none;
             border-radius: 5px;
@@ -60,7 +60,7 @@
         }
 
         button:hover {
-            background-color: #2980b9;
+            background-color: #1f618d;
         }
 
         .error {
@@ -127,6 +127,7 @@
         .relatorio h4 {
             margin: 0;
             text-align: left;
+            color: #2980b9;
         }
 
         .relatorio ul {
@@ -136,6 +137,8 @@
 
         .relatorio li {
             margin: 5px 0;
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
         }
     </style>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -348,7 +351,7 @@
         }
 
         function gerarRelatorio() {
-            const senha = prompt("Digite a senha para acessar o relatório:");
+            const senha = prompt("Digite a senha para acessar o relatório. Acesso exclusivo à Comissão de Formaturas:");
             if (senha === "Sgt2024ii") {
                 const convidadosCount = {};
                 const alunosConvidaram = {};
