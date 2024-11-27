@@ -13,14 +13,14 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #f4f4f9;
+            background-color: #f0f5f0;
         }
         .container {
             background-color: #ffffff;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            max-width: 700px;
+            max-width: 600px;
             width: 100%;
         }
         h1, h2, h3 {
@@ -28,39 +28,42 @@
             color: #004d40;
         }
         .form-group {
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            margin-bottom: 10px;
         }
         .form-group input, .form-group select {
             padding: 8px;
+            margin-bottom: 8px;
             border-radius: 5px;
             border: 1px solid #ddd;
-            flex: 1;
+            width: 100%;
         }
         button {
-            padding: 8px 12px;
-            background-color: #00796b;
+            padding: 8px;
+            margin: 5px;
+            background-color: #ff6666;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            width: calc(48%);
         }
         button:hover {
-            background-color: #00574b;
+            background-color: #ff4d4d;
         }
         .hidden {
             display: none;
         }
-        .visualizar-convidados {
-            margin-top: 20px;
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .report-item {
+            margin-bottom: 15px;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
             background-color: #f9f9f9;
-            max-height: 200px;
-            overflow-y: auto;
         }
     </style>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -72,7 +75,7 @@
     <div id="login-form">
         <div class="form-group">
             <label for="matricula">Digite sua matrícula:</label>
-            <input type="text" id="matricula" placeholder="Matrícula" maxlength="8">
+            <input type="text" id="matricula" placeholder="Digite sua matrícula" maxlength="8">
         </div>
         <button onclick="login()">Entrar</button>
         <div id="login-error" class="error hidden">Matrícula não encontrada. Por favor, tente novamente.</div>
@@ -81,35 +84,48 @@
     <div id="convidados-form" class="hidden">
         <h2 id="aluno-nome"></h2>
         <h3>Escolha seus convidados</h3>
-        <p id="contador">Total de Convidados: 0</p>
-        <div id="convidados-container"></div>
-        <button class="small-button" onclick="adicionarConvidado()">+ Adicionar Outro</button>
+        <div id="convidados-container">
+            <div class="form-group">
+                <label for="posto0">Posto/Graduação:</label>
+                <select id="posto0">
+                    <option value="Sd">Sd</option>
+                    <option value="Cb">Cb</option>
+                    <option value="Sgt">Sgt</option>
+                    <option value="ST">ST</option>
+                    <option value="Ten">Ten</option>
+                    <option value="CAP">CAP</option>
+                    <option value="MAJ">MAJ</option>
+                    <option value="TC">TC</option>
+                    <option value="CEL">CEL</option>
+                </select>
+                <label for="nome0">Nome do Convidado:</label>
+                <input type="text" id="nome0" placeholder="Digite o nome completo">
+            </div>
+        </div>
+        <button onclick="adicionarConvidado()">+ Outro</button>
         <div style="display: flex; justify-content: space-between;">
             <button onclick="salvarConvidados()">Salvar</button>
-            <button onclick="visualizarConvidados()">Visualizar Meus Convidados</button>
-            <button id="botao-exportar" class="hidden" onclick="exportarRelatorio()">Exportar Relatório</button>
+            <button onclick="gerarRetaguarda()">Relatório</button>
         </div>
-        <div id="senha-organizador" class="hidden">
-            <label for="senha">Senha do Organizador:</label>
-            <input type="password" id="senha" placeholder="Senha">
-            <button onclick="validarSenha()">Entrar</button>
-        </div>
-        <div id="visualizar-convidados" class="visualizar-convidados hidden"></div>
+    </div>
+
+    <div id="retaguarda" class="hidden">
+        <h2>Relatório de Convidados</h2>
+        <div id="convidados-report"></div>
     </div>
 </div>
 
 <script>
     // Configuração do Firebase
-   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
-  authDomain: "convites-7dd28.firebaseapp.com",
-  projectId: "convites-7dd28",
-  storageBucket: "convites-7dd28.firebasestorage.app",
-  messagingSenderId: "294544246887",
-  appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
-  measurementId: "G-HGFP0YSMLV"
-};
+    const firebaseConfig = {
+        apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
+        authDomain: "convites-7dd28.firebaseapp.com",
+        projectId: "convites-7dd28",
+        storageBucket: "convites-7dd28.appspot.com",
+        messagingSenderId: "294544246887",
+        appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
+        measurementId: "G-HGFP0YSMLV"
+    };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
@@ -153,7 +169,6 @@ const firebaseConfig = {
 
     let matriculaAtual = "";
     let nomeAlunoAtual = "";
-    let contadorConvidados = 0;
 
     function login() {
         const matriculaInput = document.getElementById('matricula').value.trim();
@@ -165,7 +180,6 @@ const firebaseConfig = {
             document.getElementById('login-form').classList.add('hidden');
             document.getElementById('convidados-form').classList.remove('hidden');
             errorDiv.classList.add('hidden');
-            atualizarContador();
         } else {
             errorDiv.classList.remove('hidden');
         }
@@ -176,6 +190,7 @@ const firebaseConfig = {
         const div = document.createElement('div');
         div.className = 'form-group';
         div.innerHTML = `
+            <label>Posto/Graduação:</label>
             <select>
                 <option value="Sd">Sd</option>
                 <option value="Cb">Cb</option>
@@ -187,93 +202,70 @@ const firebaseConfig = {
                 <option value="TC">TC</option>
                 <option value="CEL">CEL</option>
             </select>
-            <input type="text" placeholder="Nome de Guerra" style="text-transform: uppercase;">
-            <label>
-                <input type="checkbox"> Levará acompanhante
-            </label>
-            <button class="small-button" onclick="removerConvidado(this)">X</button>
+            <label>Nome do Convidado:</label>
+            <input type="text" placeholder="Digite o nome completo">
         `;
         container.appendChild(div);
     }
 
-    function removerConvidado(button) {
-        button.parentElement.remove();
-        atualizarContador();
-    }
-
-    function atualizarContador() {
-        const convidadosContainer = document.getElementById('convidados-container');
-        contadorConvidados = 0;
-        convidadosContainer.querySelectorAll('.form-group').forEach(group => {
-            contadorConvidados++;
-            const checkbox = group.querySelector('input[type="checkbox"]');
-            if (checkbox && checkbox.checked) contadorConvidados++;
-        });
-        document.getElementById('contador').textContent = `Total de Convidados: ${contadorConvidados}`;
-    }
-
-    function salvarConvidados() {
+    async function salvarConvidados() {
         const convidados = [];
         const container = document.getElementById('convidados-container');
         container.querySelectorAll('.form-group').forEach(group => {
             const posto = group.querySelector('select').value;
-            const nome = group.querySelector('input[type="text"]').value.trim();
-            const acompanhante = group.querySelector('input[type="checkbox"]').checked;
-            if (nome) convidados.push({ posto, nome, acompanhante });
+            const nome = group.querySelector('input').value.trim();
+            if (nome) convidados.push({ posto, nome });
         });
-        db.collection('convidados').doc(matriculaAtual).set({
+        await db.collection('convidados').doc(matriculaAtual).set({
             aluno: nomeAlunoAtual,
             convidados
         });
         alert("Convidados salvos com sucesso!");
     }
 
-    function visualizarConvidados() {
-        const convidadosDiv = document.getElementById('visualizar-convidados');
-        db.collection('convidados').doc(matriculaAtual).get().then(doc => {
-            if (doc.exists) {
-                const data = doc.data();
-                const convidados = data.convidados || [];
-                convidadosDiv.innerHTML = convidados.map(c => 
-                    `<p>${c.posto} - ${c.nome.toUpperCase()} (${c.acompanhante ? 'COM ACOMPANHANTE' : 'SEM ACOMPANHANTE'})</p>`
-                ).join('');
-                convidadosDiv.classList.remove('hidden');
-            } else {
-                convidadosDiv.innerHTML = '<p>Sem convidados cadastrados.</p>';
+    async function gerarRetaguarda() {
+        const report = {};
+        const reportDiv = document.getElementById('convidados-report');
+        reportDiv.innerHTML = '';
+
+        try {
+            console.log("Carregando dados do Firestore...");
+            const snapshot = await db.collection('convidados').get();
+
+            if (snapshot.empty) {
+                console.warn("Nenhum documento encontrado na coleção 'convidados'.");
+                reportDiv.innerHTML = `<p>Nenhum dado disponível no momento.</p>`;
+                return;
             }
-        });
-    }
 
-    function mostrarSenha() {
-        document.getElementById('senha-organizador').style.display = 'block';
-    }
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (!data || !Array.isArray(data.convidados)) return;
 
-    function validarSenha() {
-        const senhaInput = document.getElementById('senha').value;
-        if (senhaInput === "Sgt2024ii") {
-            document.getElementById('botao-exportar').classList.remove('hidden');
-            alert("Acesso liberado!");
-        } else {
-            alert("Senha incorreta!");
-        }
-    }
-
-    async function exportarRelatorio() {
-        const snapshot = await db.collection('convidados').get();
-        let csvContent = "data:text/csv;charset=utf-8,Posto,Nome,Com Acompanhante\n";
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            data.convidados.forEach(c => {
-                csvContent += `${c.posto},${c.nome},${c.acompanhante ? 'Sim' : 'Não'}\n`;
+                data.convidados.forEach(convidado => {
+                    const key = `${convidado.posto} - ${convidado.nome}`;
+                    if (!report[key]) report[key] = { count: 0, alunos: [] };
+                    report[key].count++;
+                    report[key].alunos.push(data.aluno);
+                });
             });
-        });
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "relatorio_convidados.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+
+            for (const [convidado, info] of Object.entries(report)) {
+                const div = document.createElement('div');
+                div.className = 'report-item';
+                div.innerHTML = `
+                    <h3>${convidado}</h3>
+                    <p>Convites: ${info.count}</p>
+                    <p>Convidado por: ${info.alunos.join(', ')}</p>
+                `;
+                reportDiv.appendChild(div);
+            }
+
+            document.getElementById('retaguarda').classList.remove('hidden');
+        } catch (error) {
+            console.error("Erro ao gerar relatório:", error);
+            alert("Houve um problema ao gerar o relatório.");
+        }
     }
 </script>
 </body>
