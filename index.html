@@ -130,14 +130,6 @@
 
 <body>
     <div class="container">
-        <div id="message-banner" class="message-banner">
-            Atenção! Digite os militares que você vai convidar para a formatura. Mesmo que outro formando convide o
-            mesmo militar, os dados serão usados para garantir uma divisão justa.
-            <button onclick="dismissMessage()">Entendi</button>
-        </div>
-        
-        <h1>Controle de Convidados Militares</h1>
-
         <div id="login-form">
             <div class="form-group">
                 <label for="matricula">Digite sua matrícula:</label>
@@ -148,9 +140,16 @@
         </div>
 
         <div id="convidados-form" class="hidden">
-            <h2 id="aluno-nome"></h2>
+            <h1>Controle de Convidados Militares</h1>
+            <div id="aluno-nome"></div>
+
+            <div id="message-banner" class="message-banner hidden">
+                Atenção! Digite os militares que você vai convidar para a formatura. Mesmo que outro formando convide o
+                mesmo militar, os dados serão usados para garantir uma divisão justa.
+                <button onclick="dismissMessage()">Entendi</button>
+            </div>
+
             <h3>Escolha seus convidados</h3>
-            
             <div id="convidados-container">
                 <div class="form-group">
                     <label for="posto0">Posto/Graduação:</label>
@@ -179,7 +178,7 @@
             <div id="convidados-list" class="convidados-list"></div>
 
             <button onclick="salvarConvidados()">Salvar</button>
-            <button onclick="gerarRelatorio()">Relatório</button>
+            <button onclick="gerarRelatorio()">Gerar Relatório</button>
             <div class="counter">Contagem de convidados: <span id="convidados-counter">0</span></div>
         </div>
 
@@ -255,6 +254,7 @@
                 document.getElementById('login-form').classList.add('hidden');
                 document.getElementById('convidados-form').classList.remove('hidden');
                 errorDiv.classList.add('hidden');
+                document.getElementById('message-banner').classList.remove('hidden');
             } else {
                 errorDiv.classList.remove('hidden');
             }
@@ -314,10 +314,24 @@
         }
 
         function gerarRelatorio() {
-            let relatorioHtml = '<ul>';
+            const convidadosCount = {};
+            const alunosConvidaram = {};
+            
+            // Contando quantas vezes cada militar foi convidado e quem o convidou
             convidados.forEach(convidado => {
-                relatorioHtml += `<li>${convidado.posto} ${convidado.nome} ${convidado.acompanhante ? '(Acompanhante)' : ''}</li>`;
+                const chave = `${convidado.posto} ${convidado.nome}`;
+                if (!convidadosCount[chave]) {
+                    convidadosCount[chave] = 0;
+                    alunosConvidaram[chave] = [];
+                }
+                convidadosCount[chave]++;
+                alunosConvidaram[chave].push(nomeAlunoAtual);
             });
+
+            let relatorioHtml = '<ul>';
+            for (let chave in convidadosCount) {
+                relatorioHtml += `<li>${chave} - ${convidadosCount[chave]} vez(es) | Convidado(s) por: ${alunosConvidaram[chave].join(', ')}</li>`;
+            }
             relatorioHtml += '</ul>';
             document.getElementById('convidados-report').innerHTML = relatorioHtml;
             document.getElementById('retaguarda').classList.remove('hidden');
