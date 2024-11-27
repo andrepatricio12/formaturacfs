@@ -115,6 +115,28 @@
             font-size: 18px;
             color: #2c3e50;
         }
+
+        .relatorio {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        .relatorio h4 {
+            margin: 0;
+            text-align: left;
+        }
+
+        .relatorio ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .relatorio li {
+            margin: 5px 0;
+        }
     </style>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -122,6 +144,7 @@
 
 <body>
     <div class="container">
+        <h1>Controle de Convidados Militares</h1>
         <div id="login-form">
             <div class="form-group">
                 <label for="matricula">Digite sua matrícula:</label>
@@ -132,7 +155,7 @@
         </div>
 
         <div id="convidados-form" class="hidden">
-            <h1>Controle de Convidados Militares</h1>
+            <h3>Escolha seus convidados</h3>
             <div id="aluno-nome"></div>
 
             <div id="message-banner" class="message-banner hidden">
@@ -140,7 +163,6 @@
                 <button onclick="dismissMessage()">Entendi</button>
             </div>
 
-            <h3>Escolha seus convidados</h3>
             <div id="convidados-container">
                 <div class="form-group">
                     <label for="posto0">Posto/Graduação:</label>
@@ -164,15 +186,15 @@
                 </div>
 
                 <button onclick="adicionarConvidado()">+ Outro</button>
-                <button onclick="gerarRelatorio()">Gerar Relatório</button>
                 <div id="convidados-list" class="convidados-list"></div>
                 <div class="counter">Contagem de convidados: <span id="convidados-counter">0</span></div>
             </div>
+            <button onclick="gerarRelatorio()">Gerar Relatório</button>
         </div>
 
         <div id="retaguarda" class="hidden">
             <h2>Relatório de Convidados</h2>
-            <div id="convidados-report"></div>
+            <div id="convidados-report" class="relatorio hidden"></div>
         </div>
     </div>
 
@@ -244,6 +266,7 @@
                 errorDiv.classList.add('hidden');
                 document.getElementById('message-banner').classList.remove('hidden');
                 atualizarContador();
+                carregarConvidados(); // Carregar convidados do Firebase
             } else {
                 errorDiv.classList.remove('hidden');
             }
@@ -266,6 +289,7 @@
             convidados.push(novoConvidado);
             renderConvidados();
             atualizarContador();
+            salvarConvidados(); // Salvar no Firebase
         }
 
         function renderConvidados() {
@@ -293,6 +317,34 @@
             convidados.splice(index, 1);
             renderConvidados();
             atualizarContador();
+            salvarConvidados(); // Salvar no Firebase
+        }
+
+        function salvarConvidados() {
+            db.collection("convites").doc(matriculaAtual).set({
+                nome: nomeAlunoAtual,
+                convidados: convidados
+            })
+            .then(() => {
+                console.log("Convidados salvos com sucesso!");
+            })
+            .catch((error) => {
+                console.error("Erro ao salvar convidados: ", error);
+            });
+        }
+
+        function carregarConvidados() {
+            db.collection("convites").doc(matriculaAtual).get()
+            .then((doc) => {
+                if (doc.exists) {
+                    convidados = doc.data().convidados || [];
+                    renderConvidados();
+                    atualizarContador();
+                }
+            })
+            .catch((error) => {
+                console.error("Erro ao carregar convidados: ", error);
+            });
         }
 
         function gerarRelatorio() {
@@ -311,7 +363,7 @@
                     alunosConvidaram[chave].push(nomeAlunoAtual);
                 });
 
-                let relatorioHtml = '<ul>';
+                let relatorioHtml = '<h4>Relatório de Convidados</h4><ul>';
                 for (let chave in convidadosCount) {
                     relatorioHtml += `<li>${chave} - ${convidadosCount[chave]} vez(es) | Convidado(s) por: ${alunosConvidaram[chave].join(', ')}</li>`;
                 }
