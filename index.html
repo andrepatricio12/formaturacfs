@@ -42,6 +42,9 @@
             padding: 10px;
             margin: 5px 0;
         }
+        <button type="button" id="login-btn">Entrar</button>
+<button type="button" id="add-btn">Adicionar Convidado</button>
+
     </style>
 </head>
 <body>
@@ -137,8 +140,8 @@ const alunos = {
         "9329056": "VINICIUS JOVELINO COSTA",
         "9339477": "DANIEL SERAFIM PESSI"
 };
-        const autorizados = ["9320547"
-                            "9303219"
+        const autorizados = ["9320547",
+                            "9303219",
             "9316221"]; // Matrículas autorizadas
 document.getElementById('relatorio-btn').addEventListener('click', () => {
     const senha = prompt("Digite a senha de acesso:");
@@ -222,6 +225,9 @@ document.getElementById('add-btn').addEventListener('click', () => {
             pdf.save('relatorio_convidados.pdf');
         }
     });
+}
+        if (matricula === "9320547") { 
+    document.getElementById('relatorio-btn').style.display = 'block'; 
 }
 function exportarExcel() {
     const tabela = document.querySelector('#relatorio table');
