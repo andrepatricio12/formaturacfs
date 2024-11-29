@@ -45,7 +45,6 @@
     </style>
 </head>
 <body>
-
 <div id="container">
     <h1>Controle de Convidados CFS2024/2</h1>
     <div id="login-section">
@@ -54,7 +53,6 @@
         <button id="login-btn">Entrar</button>
         <button id="relatorio-btn" style="display:none;">Ver Relatório</button>
     </div>
-
     <div id="convidados-section" style="display: none;">
         <h2 id="welcome-msg"></h2>
         <select id="posto">
@@ -71,29 +69,29 @@
         <input type="text" id="nome-guerra" placeholder="Nome de Guerra (maiúsculas)" oninput="this.value = this.value.toUpperCase()">
         <label><input type="checkbox" id="acompanhante"> Levará acompanhante?</label>
         <button id="add-btn">Adicionar Convidado</button>
-
         <h2>Meus Convidados</h2>
         <div id="lista-convidados"></div>
+        <p id="contador-convidados">Total de Convidados: 0</p>
     </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js"></script>
-
 <script>
     // Configuração Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
-        authDomain: "convites-7dd28.firebaseapp.com",
-        projectId: "convites-7dd28",
-        storageBucket: "convites-7dd28.appspot.com",
-        messagingSenderId: "294544246887",
-        appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
-        measurementId: "G-HGFP0YSMLV"
-    };
+     // Configuração Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
+    authDomain: "convites-7dd28.firebaseapp.com",
+    projectId: "convites-7dd28",
+    storageBucket: "convites-7dd28.appspot.com",
+    messagingSenderId: "294544246887",
+    appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
+    measurementId: "G-HGFP0YSMLV"
+};
 
-    // Inicializar Firebase
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
@@ -135,123 +133,62 @@
         "9339477": "DANIEL SERAFIM PESSI"
     };
 
-    const autorizados = ["9320547", "9303219", "9316221"]; // Matrículas autorizadas
-
-    document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('login-btn').addEventListener('click', () => {
-            const matricula = document.getElementById('matricula').value;
-            if (alunos[matricula]) {
-                document.getElementById('login-section').style.display = 'none';
-                document.getElementById('convidados-section').style.display = 'block';
-                document.getElementById('welcome-msg').textContent = `Olá, ${alunos[matricula]}!`;
-                if (autorizados.includes(matricula)) {
-                    document.getElementById('relatorio-btn').style.display = 'block';
-                }
-            } else {
-                alert('Matrícula inválida!');
-            }
-        });
-
-        document.getElementById('add-btn').addEventListener('click', () => {
-            const posto = document.getElementById('posto').value;
-            const nomeGuerra = document.getElementById('nome-guerra').value.trim();
-            const acompanhante = document.getElementById('acompanhante').checked;
-            if (nomeGuerra) {
-                const convidadosRef = db.ref('convidados').push();
-                convidadosRef.set({
-                    posto,
-                    nomeGuerra,
-                    acompanhante,
-                    convidadoPor: document.getElementById('welcome-msg').textContent
-                }).then(() => {
-                    const convidadoDiv = document.createElement('div');
-                    convidadoDiv.className = 'convidado';
-                    convidadoDiv.innerHTML = `${posto} ${nomeGuerra} ${acompanhante ? '(com acompanhante)' : ''} <button onclick="removeConvidado('${convidadosRef.key}')">Remover</button>`;
-                    document.getElementById('lista-convidados').appendChild(convidadoDiv);
-
-                    // Limpar campos
-                    document.getElementById('posto').value = "SD";
-                    document.getElementById('nome-guerra').value = '';
-                    document.getElementById('acompanhante').checked = false;
-                }).catch((error) => {
-                    console.error('Erro ao adicionar convidado:', error);
-                });
-            } else {
-                alert('Preencha o nome de guerra!');
-            }
-        });
-
-        document.getElementById('relatorio-btn').addEventListener('click', () => {
-            const senha = prompt("Digite a senha de acesso:");
-            if (senha === "Sgt2024II") {
-                gerarRelatorio();
-            } else {
-                alert("Senha incorreta!");
-            }
-        });
+    document.getElementById('login-btn').addEventListener('click', () => {
+        const matricula = document.getElementById('matricula').value;
+        if (alunos[matricula]) {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('convidados-section').style.display = 'block';
+            document.getElementById('welcome-msg').textContent = `Olá, ${alunos[matricula]}!`;
+        } else {
+            alert('Matrícula inválida!');
+        }
     });
 
-    function gerarRelatorio() {
-        const relatorioDiv = document.createElement('div');
-        relatorioDiv.id = 'relatorio';
+    document.getElementById('add-btn').addEventListener('click', () => {
+        const posto = document.getElementById('posto').value;
+        const nomeGuerra = document.getElementById('nome-guerra').value.trim();
+        const acompanhante = document.getElementById('acompanhante').checked;
 
-        db.ref('convidados').once('value', (snapshot) => {
-            const convidados = snapshot.val();
-            let html = '<h2>Relatório de Convidados</h2>';
-            html += `<table border="1"><tr><th>Nome</th><th>Posto</th><th>Acompanhante</th><th>Convidado por</th></tr>`;
-            
-            for (const key in convidados) {
-                const { nomeGuerra, posto, acompanhante, convidadoPor } = convidados[key];
-                html += `
-                    <tr>
-                        <td>${nomeGuerra}</td>
-                        <td>${posto}</td>
-                        <td>${acompanhante ? 'Sim' : 'Não'}</td>
-                        <td>${convidadoPor}</td>
-                    </tr>`;
-            }
-            html += '</table>';
-            html += `<button onclick="exportarPDF()">Exportar para PDF</button>`;
-            html += `<button onclick="exportarExcel()">Exportar para Excel</button>`;
-            relatorioDiv.innerHTML = html;
-            document.body.appendChild(relatorioDiv);
-        });
-    }
+        if (nomeGuerra) {
+            const convidadosRef = db.ref('convidados').push();
+            convidadosRef.set({
+                posto,
+                nomeGuerra,
+                acompanhante
+            });
 
-    function exportarPDF() {
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF();
-        const conteudo = document.getElementById('relatorio').innerHTML;
-
-        pdf.html(conteudo, {
-            callback: function (pdf) {
-                pdf.save('relatorio_convidados.pdf');
-            }
-        });
-    }
-
-    function exportarExcel() {
-        const tabela = document.querySelector('#relatorio table');
-        let csv = '';
-
-        for (let row of tabela.rows) {
-            const cols = Array.from(row.cells).map(cell => `"${cell.textContent}"`).join(',');
-            csv += `${cols}\n`;
+            const convidadoDiv = document.createElement('div');
+            convidadoDiv.className = 'convidado';
+            convidadoDiv.innerHTML = `${posto} ${nomeGuerra} ${acompanhante ? '(com acompanhante)' : ''}
+                <button onclick="removeConvidado('${convidadosRef.key}')">Remover</button>`;
+            document.getElementById('lista-convidados').appendChild(convidadoDiv);
         }
-
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'relatorio_convidados.csv';
-        a.click();
-        URL.revokeObjectURL(url);
-    }
+    });
 
     function removeConvidado(key) {
         db.ref(`convidados/${key}`).remove();
-        location.reload(); // Atualizar lista após remover
+        document.querySelector(`[data-key='${key}']`).remove();
+    }
+
+    document.getElementById('relatorio-btn').addEventListener('click', () => {
+        const senha = prompt("Digite a senha:");
+        if (senha === "Sgt2024II") {
+            gerarRelatorio();
+        } else {
+            alert('Senha incorreta!');
+        }
+    });
+
+    function gerarRelatorio() {
+        db.ref('convidados').once('value', snapshot => {
+            let html = `<h2>Relatório</h2><table><tr><th>Nome</th><th>Posto</th><th>Acompanhante</th></tr>`;
+            snapshot.forEach(child => {
+                const { nomeGuerra, posto, acompanhante } = child.val();
+                html += `<tr><td>${nomeGuerra}</td><td>${posto}</td><td>${acompanhante ? 'Sim' : 'Não'}</td></tr>`;
+            });
+            html += '</table>';
+            document.body.innerHTML += html;
+        });
     }
 </script>
 </body>
