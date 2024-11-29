@@ -5,16 +5,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Convidados CFS2024/2</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f0f0f0; color: #333; }
-        .container { max-width: 600px; margin: auto; padding: 20px; background: #fff; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        h1 { text-align: center; }
-        .convidados { margin-top: 20px; }
-        .convidado { display: flex; justify-content: space-between; align-items: center; }
-        button { background-color: #007BFF; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
+        body {
+            background-color: #f0f0f0;
+            color: #333;
+            font-family: Arial, sans-serif;
+        }
+        #container {
+            width: 50%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: #444;
+        }
+        input, select, button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+        }
+        button {
+            background-color: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #555;
+        }
+        .convidado {
+            display: flex;
+            justify-content: space-between;
+            background: #e0e0e0;
+            padding: 10px;
+            margin: 5px 0;
+        }
+        #relatorio table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #relatorio table, th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
     </style>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+</head>
+<body>
+    <div id="container">
+        <h1>Controle de Convidados CFS2024/2</h1>
+        <div id="login-section">
+            <h2>Login</h2>
+            <input type="text" id="matricula" placeholder="Digite sua matrícula">
+            <button id="login-btn">Entrar</button>
+        </div>
+
+        <div id="convidados-section" style="display: none;">
+            <h2 id="welcome-msg"></h2>
+            <select id="posto">
+                <option value="SD">Soldado (SD)</option>
+                <option value="CB">Cabo (CB)</option>
+                <option value="SGT">Sargento (SGT)</option>
+                <option value="ST">Subtenente (ST)</option>
+                <option value="TEN">Tenente (TEN)</option>
+                <option value="CAP">Capitão (CAP)</option>
+                <option value="MAJ">Major (MAJ)</option>
+                <option value="TC">Tenente-Coronel (TC)</option>
+                <option value="CEL">Coronel (CEL)</option>
+            </select>
+            <input type="text" id="nome-guerra" placeholder="Nome de Guerra (maiúsculas)" oninput="this.value = this.value.toUpperCase()">
+            <label><input type="checkbox" id="acompanhante"> Levará acompanhante?</label>
+            <button id="add-btn">Adicionar Convidado</button>
+
+            <h2>Meus Convidados</h2>
+            <div id="lista-convidados"></div>
+        </div>
+
+        <button id="relatorio-btn" style="display:none;">Ver Relatório</button>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
@@ -27,7 +101,7 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        
+
         const alunos = {
             "9287027": "ELIENAR FARIAS",
         "9306820": "NAZARETH LIMA GOEDERT",
@@ -66,87 +140,66 @@
         "9339477": "DANIEL SERAFIM PESSI"
         };
 
-        let usuarioLogado = null;
-        let convidados = [];
-
-        function login() {
+        document.getElementById('login-btn').addEventListener('click', () => {
             const matricula = document.getElementById('matricula').value;
-            usuarioLogado = alunos[matricula];
-            if (usuarioLogado) {
-                document.getElementById('boasVindas').innerText = `Olá, ${usuarioLogado}!`;
-                document.getElementById('formulario').style.display = 'block';
-                document.getElementById('login').style.display = 'none';
+            if (alunos[matricula]) {
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('convidados-section').style.display = 'block';
+                document.getElementById('welcome-msg').textContent = `Olá, ${alunos[matricula]}!`;
+                if (["9287027"].includes(matricula)) {
+                    document.getElementById('relatorio-btn').style.display = 'block';
+                }
             } else {
                 alert('Matrícula inválida!');
             }
-        }
+        });
 
-        function adicionarConvidado() {
+        document.getElementById('add-btn').addEventListener('click', () => {
             const posto = document.getElementById('posto').value;
-            const nomeGuerra = document.getElementById('nomeGuerra').value.toUpperCase();
+            const nomeGuerra = document.getElementById('nome-guerra').value.trim();
             const acompanhante = document.getElementById('acompanhante').checked;
-            const totalConvidados = acompanhante ? 2 : 1;
+            if (nomeGuerra) {
+                const convidadosRef = db.ref('convidados').push();
+                convidadosRef.set({
+                    posto,
+                    nomeGuerra,
+                    acompanhante,
+                    convidadoPor: document.getElementById('welcome-msg').textContent
+                });
+                alert(`${posto} ${nomeGuerra} adicionado.`);
+                location.reload();
+            }
+        });
 
-            convidados.push({ posto, nomeGuerra, acompanhante });
-            atualizarListaConvidados();
-            limparCampos();
+        document.getElementById('relatorio-btn').addEventListener('click', () => {
+            const senha = prompt("Digite a senha de acesso:");
+            if (senha === "Sgt2024II") gerarRelatorio();
+            else alert("Senha incorreta!");
+        });
+
+        async function gerarRelatorio() {
+            const relatorioDiv = document.createElement('div');
+            relatorioDiv.id = 'relatorio';
+
+            const snapshot = await db.ref('convidados').once('value');
+            const convidados = snapshot.val();
+            let html = '<h2>Relatório de Convidados</h2>';
+            html += `<table><tr><th>Nome</th><th>Posto</th><th>Acompanhante</th><th>Convidado por</th></tr>`;
+            for (const key in convidados) {
+                const { nomeGuerra, posto, acompanhante, convidadoPor } = convidados[key];
+                html += `<tr><td>${nomeGuerra}</td><td>${posto}</td><td>${acompanhante ? 'Sim' : 'Não'}</td><td>${convidadoPor}</td></tr>`;
+            }
+            html += `</table><button onclick="exportarPDF()">Exportar PDF</button>`;
+            document.body.appendChild(relatorioDiv);
         }
 
-        function atualizarListaConvidados() {
-            const lista = document.getElementById('listaConvidados');
-            lista.innerHTML = '';
-            convidados.forEach((convidado, index) => {
-                const div = document.createElement('div');
-                div.className = 'convidado';
-                div.innerHTML = `${convidado.posto} ${convidado.nomeGuerra} <button onclick="removerConvidado(${index})">Excluir</button>`;
-                lista.appendChild(div);
+        function exportarPDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+            pdf.html(document.getElementById('relatorio'), {
+                callback: function (pdf) { pdf.save('relatorio_convidados.pdf'); }
             });
         }
-
-        function removerConvidado(index) {
-            convidados.splice(index, 1);
-            atualizarListaConvidados();
-        }
-
-        function limparCampos() {
-            document.getElementById('posto').value = '';
-            document.getElementById('nomeGuerra').value = '';
-            document.getElementById('acompanhante').checked = false;
-        }
     </script>
-</head>
-<body>
-    <div class="container">
-        <h1>Controle de Convidados CFS2024/2</h1>
-        <div id="login">
-            <input type="text" id="matricula" placeholder="Digite sua matrícula" />
-            <button onclick="login()">Login</button>
-        </div>
-        <div id="boasVindas"></div>
-        <div id="formulario" style="display: none;">
-            <h2>Adicionar Convidado</h2>
-            <select id="posto">
-                <option value="">Selecione o posto</option>
-                <option value="SD">SD</option>
-                <option value="CB">CB</option>
-                <option value="SGT">SGT</option>
-                <option value="ST">ST</option>
-                <option value="TEN">TEN</option>
-                <option value="CAP">CAP</option>
-                <option value="MAJ">MAJ</option>
-                <option value="TC">TC</option>
-                <option value="CEL">CEL</option>
-            </select>
-            <input type="text" id="nomeGuerra" placeholder="Nome de Guerra" />
-            <label>
-                <input type="checkbox" id="acompanhante" /> Acompanhante
-            </label>
-            <button onclick="adicionarConvidado()">Adicionar Convidado</button>
-        </div>
-        <div class="convidados">
-            <h2>Meus Convidados</h2>
-            <div id="listaConvidados"></div>
-        </div>
-    </div>
 </body>
 </html>
