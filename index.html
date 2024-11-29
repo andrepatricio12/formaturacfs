@@ -203,7 +203,13 @@
             errorDiv.classList.remove('hidden');
         }
     }
-
+async function carregarConvidados() {
+        const doc = await db.collection('convidados').doc(matriculaAtual).get();
+        if (doc.exists) {
+            const data = doc.data();
+            if (data.convidados) {
+                data.convidados.forEach(convidado => adicionarConvidado(convidado));
+            }
     function adicionarConvidado() {
         const container = document.getElementById('convidados-container');
         const div = document.createElement('div');
@@ -221,11 +227,12 @@
                 <option value="TC">TC</option>
                 <option value="CEL">CEL</option>
             </select>
-            <label>Nome do Convidado:</label>
-            <input type="text" placeholder="Digite o nome completo">
+             <label>Nome do Convidado:</label>
+            <input type="text" placeholder="Digite o nome completo" value="${convidado.nome}" 
+                   oninput="this.value = this.value.toUpperCase()">
             <div>
                 <label>Acompanhante:</label>
-                <input type="checkbox" onchange="atualizarContador()">
+                <input type="checkbox" ${convidado.acompanhante ? "checked" : ""} onchange="atualizarContador()">
             </div>
         `;
         container.appendChild(div);
