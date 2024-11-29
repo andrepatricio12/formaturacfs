@@ -33,8 +33,8 @@
       border: none;
     }
     input#matricula {
-      width: 50%; /* Reduzindo o campo de matrícula */
-      margin: 0 auto; /* Centralizando */
+      width: 50%;
+      margin: 0 auto;
       text-align: center;
     }
     button {
@@ -106,16 +106,15 @@
     </div>
   </div>
   <script>
-    
+    // Configuração do Firebase corrigida
     const firebaseConfig = {
-  apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
-  authDomain: "convites-7dd28.firebaseapp.com",
-  projectId: "convites-7dd28",
-  storageBucket: "convites-7dd28.firebasestorage.app",
-  messagingSenderId: "294544246887",
-  appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
-  measurementId: "G-HGFP0YSMLV"
-};
+      apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
+      authDomain: "convites-7dd28.firebaseapp.com",
+      projectId: "convites-7dd28",
+      storageBucket: "convites-7dd28.appspot.com",
+      messagingSenderId: "294544246887",
+      appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
+      measurementId: "G-HGFP0YSMLV"
     };
 
     // Inicializar Firebase
@@ -124,7 +123,7 @@
 
     // Simulação de usuários
     const alunos = {
-      "9287027": "ELIENAR FARIAS",
+     "9287027": "ELIENAR FARIAS",
         "9306820": "NAZARETH LIMA GOEDERT",
         "9303219": "CARLA DE LUCA LINHARES",
         "9287124": "LEANDRO GHELLERE",
@@ -272,18 +271,16 @@
           });
 
           for (const [nome, data] of Object.entries(relatorio)) {
-            csv += `${nome},${data.count},"${data.formadores.join(", ")}"\n`;
+            csv += `${nome},${data.count},${data.formadores.join(";")}\n`;
           }
 
-          const blob = new Blob([csv], { type: "text/csv" });
+          const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
           const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "relatorio_convidados.csv";
-          a.click();
-        })
-        .catch((error) => {
-          console.error("Erro ao exportar CSV:", error);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "relatorio_convidados.csv";
+          link.click();
+          URL.revokeObjectURL(url);
         });
     }
   </script>
