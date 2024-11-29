@@ -1,6 +1,3 @@
-Vamos corrigir e estilizar o código HTML conforme solicitado. Primeiro, alguns erros foram encontrados e ajustados. Aqui está o código corrigido e a estilização adicionada:
-
-```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -45,32 +42,19 @@ Vamos corrigir e estilizar o código HTML conforme solicitado. Primeiro, alguns 
             padding: 10px;
             margin: 5px 0;
         }
-        /* Estilização para a seção de login */
-        #login-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        #matricula {
-            width: 70%;
-            margin: 0;
-        }
-        #login-btn {
-            width: 25%;
-            margin-left: 5%;
-        }
     </style>
 </head>
 <body>
+
 <div id="container">
     <h1>Controle de Convidados CFS2024/2</h1>
     <div id="login-section">
         <h2>Login</h2>
         <input type="text" id="matricula" placeholder="Digite sua matrícula">
         <button id="login-btn">Entrar</button>
-        <!-- Botão de relatório dentro da div correta -->
         <button id="relatorio-btn" style="display:none;">Ver Relatório</button>
     </div>
+
     <div id="convidados-section" style="display: none;">
         <h2 id="welcome-msg"></h2>
         <select id="posto">
@@ -87,13 +71,16 @@ Vamos corrigir e estilizar o código HTML conforme solicitado. Primeiro, alguns 
         <input type="text" id="nome-guerra" placeholder="Nome de Guerra (maiúsculas)" oninput="this.value = this.value.toUpperCase()">
         <label><input type="checkbox" id="acompanhante"> Levará acompanhante?</label>
         <button id="add-btn">Adicionar Convidado</button>
+
         <h2>Meus Convidados</h2>
         <div id="lista-convidados"></div>
     </div>
 </div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js"></script>
+
 <script>
     // Configuração Firebase
     const firebaseConfig = {
@@ -147,58 +134,61 @@ Vamos corrigir e estilizar o código HTML conforme solicitado. Primeiro, alguns 
         "9329056": "VINICIUS JOVELINO COSTA",
         "9339477": "DANIEL SERAFIM PESSI"
     };
-    const autorizados = [
-        "9320547",
-        "9303219",
-        "9316221"
-    ]; // Matrículas autorizadas
 
-    document.getElementById('relatorio-btn').addEventListener('click', () => {
-        const senha = prompt("Digite a senha de acesso:");
-        if (senha === "Sgt2024II") {
-            gerarRelatorio();
-        } else {
-            alert("Senha incorreta!");
-        }
-    });
+    const autorizados = ["9320547", "9303219", "9316221"]; // Matrículas autorizadas
 
-    document.getElementById('login-btn').addEventListener('click', () => {
-        const matricula = document.getElementById('matricula').value;
-        if (alunos[matricula]) {
-            document.getElementById('login-section').style.display = 'none';
-            document.getElementById('convidados-section').style.display = 'block';
-            document.getElementById('welcome-msg').textContent = `Olá, ${alunos[matricula]}!`;
-        } else {
-            alert('Matrícula inválida!');
-        }
-    });
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('login-btn').addEventListener('click', () => {
+            const matricula = document.getElementById('matricula').value;
+            if (alunos[matricula]) {
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('convidados-section').style.display = 'block';
+                document.getElementById('welcome-msg').textContent = `Olá, ${alunos[matricula]}!`;
+                if (autorizados.includes(matricula)) {
+                    document.getElementById('relatorio-btn').style.display = 'block';
+                }
+            } else {
+                alert('Matrícula inválida!');
+            }
+        });
 
-    document.getElementById('add-btn').addEventListener('click', () => {
-        const posto = document.getElementById('posto').value;
-        const nomeGuerra = document.getElementById('nome-guerra').value.trim();
-        const acompanhante = document.getElementById('acompanhante').checked;
-        if (nomeGuerra) {
-            const convidadosRef = db.ref('convidados').push();
-            convidadosRef.set({
-                posto,
-                nomeGuerra,
-                acompanhante,
-                convidadoPor: document.getElementById('welcome-msg').textContent
-            });
+        document.getElementById('add-btn').addEventListener('click', () => {
+            const posto = document.getElementById('posto').value;
+            const nomeGuerra = document.getElementById('nome-guerra').value.trim();
+            const acompanhante = document.getElementById('acompanhante').checked;
+            if (nomeGuerra) {
+                const convidadosRef = db.ref('convidados').push();
+                convidadosRef.set({
+                    posto,
+                    nomeGuerra,
+                    acompanhante,
+                    convidadoPor: document.getElementById('welcome-msg').textContent
+                }).then(() => {
+                    const convidadoDiv = document.createElement('div');
+                    convidadoDiv.className = 'convidado';
+                    convidadoDiv.innerHTML = `${posto} ${nomeGuerra} ${acompanhante ? '(com acompanhante)' : ''} <button onclick="removeConvidado('${convidadosRef.key}')">Remover</button>`;
+                    document.getElementById('lista-convidados').appendChild(convidadoDiv);
 
-            const convidadoDiv = document.createElement('div');
-            convidadoDiv.className = 'convidado';
-            convidadoDiv.innerHTML = `${posto} ${nomeGuerra} ${acompanhante ? '(com acompanhante)' : ''}
-                <button onclick="removeConvidado('${convidadosRef.key}')">Remover</button
-                            `>`;
-            document.getElementById('lista-convidados').appendChild(convidadoDiv);
+                    // Limpar campos
+                    document.getElementById('posto').value = "SD";
+                    document.getElementById('nome-guerra').value = '';
+                    document.getElementById('acompanhante').checked = false;
+                }).catch((error) => {
+                    console.error('Erro ao adicionar convidado:', error);
+                });
+            } else {
+                alert('Preencha o nome de guerra!');
+            }
+        });
 
-            document.getElementById('posto').value = "SD";
-            document.getElementById('nome-guerra').value = '';
-            document.getElementById('acompanhante').checked = false;
-        } else {
-            alert('Preencha o nome de guerra!');
-        }
+        document.getElementById('relatorio-btn').addEventListener('click', () => {
+            const senha = prompt("Digite a senha de acesso:");
+            if (senha === "Sgt2024II") {
+                gerarRelatorio();
+            } else {
+                alert("Senha incorreta!");
+            }
+        });
     });
 
     function gerarRelatorio() {
@@ -232,7 +222,7 @@ Vamos corrigir e estilizar o código HTML conforme solicitado. Primeiro, alguns 
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF();
         const conteudo = document.getElementById('relatorio').innerHTML;
-        
+
         pdf.html(conteudo, {
             callback: function (pdf) {
                 pdf.save('relatorio_convidados.pdf');
@@ -243,15 +233,15 @@ Vamos corrigir e estilizar o código HTML conforme solicitado. Primeiro, alguns 
     function exportarExcel() {
         const tabela = document.querySelector('#relatorio table');
         let csv = '';
-        
+
         for (let row of tabela.rows) {
             const cols = Array.from(row.cells).map(cell => `"${cell.textContent}"`).join(',');
             csv += `${cols}\n`;
         }
-        
+
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
-        
+
         const a = document.createElement('a');
         a.href = url;
         a.download = 'relatorio_convidados.csv';
@@ -263,7 +253,6 @@ Vamos corrigir e estilizar o código HTML conforme solicitado. Primeiro, alguns 
         db.ref(`convidados/${key}`).remove();
         location.reload(); // Atualizar lista após remover
     }
-
 </script>
 </body>
 </html>
