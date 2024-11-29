@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -106,7 +106,7 @@
     </div>
   </div>
   <script>
-    // Configuração do Firebase corrigida
+    // Configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
       authDomain: "convites-7dd28.firebaseapp.com",
@@ -123,7 +123,7 @@
 
     // Simulação de usuários
     const alunos = {
-     "9287027": "ELIENAR FARIAS",
+      "9287027": "ELIENAR FARIAS",
         "9306820": "NAZARETH LIMA GOEDERT",
         "9303219": "CARLA DE LUCA LINHARES",
         "9287124": "LEANDRO GHELLERE",
@@ -199,7 +199,7 @@
       });
     }
 
-    function carregarConvidados() {
+       function carregarConvidados() {
       db.collection("convidados")
         .where("formador", "==", userMatricula)
         .get()
@@ -213,7 +213,8 @@
             contador += convidado.acompanhante ? 2 : 1;
 
             const item = document.createElement("li");
-            item.innerText = `${convidado.posto} ${convidado.nomeGuerra}`;
+            item.className = "convidado-item";
+            item.innerText = `${convidado.posto} ${convidado.nomeGuerra} ${convidado.acompanhante ? "(com acompanhante)" : ""}`;
             lista.appendChild(item);
           });
 
@@ -249,6 +250,8 @@
           }
 
           document.getElementById("relatorio").style.display = "block";
+        }).catch((error) => {
+          console.error("Erro ao gerar relatório:", error);
         });
     }
 
@@ -281,6 +284,8 @@
           link.download = "relatorio_convidados.csv";
           link.click();
           URL.revokeObjectURL(url);
+        }).catch((error) => {
+          console.error("Erro ao exportar CSV:", error);
         });
     }
   </script>
