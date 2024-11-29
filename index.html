@@ -1,88 +1,139 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Convidados CFS2024/2</title>
+    <title>Controle de Convidados Militares</title>
     <style>
         body {
-            background-color: #f0f0f0;
-            color: #333;
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f5f0;
         }
-        #container {
-            width: 50%;
-            margin: 0 auto;
+        .container {
+            background-color: #ffffff;
             padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h1, h2 {
-            color: #444;
-        }
-        input, select, button {
-            display: block;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
             width: 100%;
-            margin: 10px 0;
-            padding: 10px;
+        }
+        h1, h2, h3 {
+            text-align: center;
+            color: #004d40;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        .form-group input, .form-group select {
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            width: 100%;
+        }
+        #matricula {
+            width: calc(70% - 10px);
+            display: inline-block;
         }
         button {
-            background-color: #333;
-            color: #fff;
+            padding: 8px;
+            margin: 5px;
+            background-color: #ff6666;
+            color: white;
             border: none;
+            border-radius: 5px;
             cursor: pointer;
+            width: calc(28%);
+            display: inline-block;
         }
         button:hover {
-            background-color: #555;
+            background-color: #ff4d4d;
         }
-        .convidado {
-            display: flex;
-            justify-content: space-between;
-            background: #e0e0e0;
+        .hidden {
+            display: none;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .report-item {
+            margin-bottom: 15px;
             padding: 10px;
-            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .counter {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 18px;
+            color: #004d40;
         }
     </style>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 </head>
 <body>
-
-<div id="container">
-    <h1>Controle de Convidados CFS2024/2</h1>
-    <div id="login-section">
-        <h2>Login</h2>
-        <input type="text" id="matricula" placeholder="Digite sua matrícula">
-        <button id="login-btn">Entrar</button>
-        <button id="relatorio-btn" style="display:none;">Ver Relatório</button>
+<div class="container">
+    <h1>Controle de Convidados Militares</h1>
+    <div id="login-form">
+        <div class="form-group">
+            <label for="matricula">Digite sua matrícula:</label>
+            <input type="text" id="matricula" placeholder="Digite sua matrícula" maxlength="8">
+            <button onclick="login()">Entrar</button>
+        </div>
+        <div id="login-error" class="error hidden">Matrícula não encontrada. Por favor, tente novamente.</div>
     </div>
 
-    <div id="convidados-section" style="display: none;">
-        <h2 id="welcome-msg"></h2>
-        <select id="posto">
-            <option value="SD">Soldado (SD)</option>
-            <option value="CB">Cabo (CB)</option>
-            <option value="SGT">Sargento (SGT)</option>
-            <option value="ST">Subtenente (ST)</option>
-            <option value="TEN">Tenente (TEN)</option>
-            <option value="CAP">Capitão (CAP)</option>
-            <option value="MAJ">Major (MAJ)</option>
-            <option value="TC">Tenente-Coronel (TC)</option>
-            <option value="CEL">Coronel (CEL)</option>
-        </select>
-        <input type="text" id="nome-guerra" placeholder="Nome de Guerra (maiúsculas)" oninput="this.value = this.value.toUpperCase()">
-        <label><input type="checkbox" id="acompanhante"> Levará acompanhante?</label>
-        <button id="add-btn">Adicionar Convidado</button>
+    <div id="convidados-form" class="hidden">
+        <h2 id="aluno-nome"></h2>
+        <h3>Escolha seus convidados</h3>
+        <div id="convidados-container">
+            <div class="form-group">
+                <label for="posto0">Posto/Graduação:</label>
+                <select id="posto0">
+                    <option value="Sd">Sd</option>
+                    <option value="Cb">Cb</option>
+                    <option value="Sgt">Sgt</option>
+                    <option value="ST">ST</option>
+                    <option value="Ten">Ten</option>
+                    <option value="CAP">CAP</option>
+                    <option value="MAJ">MAJ</option>
+                    <option value="TC">TC</option>
+                    <option value="CEL">CEL</option>
+                </select>
+                <label for="nome0">Nome do Convidado:</label>
+                <input type="text" id="nome0" placeholder="Digite o nome completo">
+                <div>
+                    <label for="acompanhante0">Acompanhante:</label>
+                    <input type="checkbox" id="acompanhante0" onchange="atualizarContador()">
+                </div>
+            </div>
+        </div>
+        <button onclick="adicionarConvidado()">+ Outro</button>
+        <div class="counter">Contagem de convidados: <span id="convidados-counter">0</span></div>
+        <div style="display: flex; justify-content: space-between;">
+            <button onclick="salvarConvidados()">Salvar</button>
+            <button onclick="gerarRetaguarda()">Relatório</button>
+        </div>
+    </div>
 
-        <h2>Meus Convidados</h2>
-        <div id="lista-convidados"></div>
+    <div id="retaguarda" class="hidden">
+        <h2>Relatório de Convidados</h2>
+        <div id="convidados-report"></div>
+        <button onclick="ocultarRelatorio()">Ocultar Relatório</button>
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js"></script>
-
 <script>
-    // Configuração Firebase
+    // Configuração do Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
         authDomain: "convites-7dd28.firebaseapp.com",
@@ -92,10 +143,8 @@
         appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
         measurementId: "G-HGFP0YSMLV"
     };
-
-    // Inicializar Firebase
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const db = firebase.firestore();
 
     const alunos = {
         "9287027": "ELIENAR FARIAS",
@@ -135,123 +184,136 @@
         "9339477": "DANIEL SERAFIM PESSI"
     };
 
-    const autorizados = ["9320547", "9303219", "9316221"]; // Matrículas autorizadas
+    let matriculaAtual = "";
+    let nomeAlunoAtual = "";
+    let convidados = [];
 
-    document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('login-btn').addEventListener('click', () => {
-            const matricula = document.getElementById('matricula').value;
-            if (alunos[matricula]) {
-                document.getElementById('login-section').style.display = 'none';
-                document.getElementById('convidados-section').style.display = 'block';
-                document.getElementById('welcome-msg').textContent = `Olá, ${alunos[matricula]}!`;
-                if (autorizados.includes(matricula)) {
-                    document.getElementById('relatorio-btn').style.display = 'block';
-                }
-            } else {
-                alert('Matrícula inválida!');
-            }
-        });
-
-        document.getElementById('add-btn').addEventListener('click', () => {
-            const posto = document.getElementById('posto').value;
-            const nomeGuerra = document.getElementById('nome-guerra').value.trim();
-            const acompanhante = document.getElementById('acompanhante').checked;
-            if (nomeGuerra) {
-                const convidadosRef = db.ref('convidados').push();
-                convidadosRef.set({
-                    posto,
-                    nomeGuerra,
-                    acompanhante,
-                    convidadoPor: document.getElementById('welcome-msg').textContent
-                }).then(() => {
-                    const convidadoDiv = document.createElement('div');
-                    convidadoDiv.className = 'convidado';
-                    convidadoDiv.innerHTML = `${posto} ${nomeGuerra} ${acompanhante ? '(com acompanhante)' : ''} <button onclick="removeConvidado('${convidadosRef.key}')">Remover</button>`;
-                    document.getElementById('lista-convidados').appendChild(convidadoDiv);
-
-                    // Limpar campos
-                    document.getElementById('posto').value = "SD";
-                    document.getElementById('nome-guerra').value = '';
-                    document.getElementById('acompanhante').checked = false;
-                }).catch((error) => {
-                    console.error('Erro ao adicionar convidado:', error);
-                });
-            } else {
-                alert('Preencha o nome de guerra!');
-            }
-        });
-
-        document.getElementById('relatorio-btn').addEventListener('click', () => {
-            const senha = prompt("Digite a senha de acesso:");
-            if (senha === "Sgt2024II") {
-                gerarRelatorio();
-            } else {
-                alert("Senha incorreta!");
-            }
-        });
-    });
-
-    function gerarRelatorio() {
-        const relatorioDiv = document.createElement('div');
-        relatorioDiv.id = 'relatorio';
-
-        db.ref('convidados').once('value', (snapshot) => {
-            const convidados = snapshot.val();
-            let html = '<h2>Relatório de Convidados</h2>';
-            html += `<table border="1"><tr><th>Nome</th><th>Posto</th><th>Acompanhante</th><th>Convidado por</th></tr>`;
-            
-            for (const key in convidados) {
-                const { nomeGuerra, posto, acompanhante, convidadoPor } = convidados[key];
-                html += `
-                    <tr>
-                        <td>${nomeGuerra}</td>
-                        <td>${posto}</td>
-                        <td>${acompanhante ? 'Sim' : 'Não'}</td>
-                        <td>${convidadoPor}</td>
-                    </tr>`;
-            }
-            html += '</table>';
-            html += `<button onclick="exportarPDF()">Exportar para PDF</button>`;
-            html += `<button onclick="exportarExcel()">Exportar para Excel</button>`;
-            relatorioDiv.innerHTML = html;
-            document.body.appendChild(relatorioDiv);
-        });
+    function login() {
+        const matriculaInput = document.getElementById('matricula').value.trim();
+        const errorDiv = document.getElementById('login-error');
+        if (alunos[matriculaInput]) {
+            matriculaAtual = matriculaInput;
+            nomeAlunoAtual = alunos[matriculaInput];
+            document.getElementById('aluno-nome').textContent = `Bem-vindo(a), ${nomeAlunoAtual}`;
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('convidados-form').classList.remove('hidden');
+            errorDiv.classList.add('hidden');
+            atualizarContador();
+        } else {
+            errorDiv.classList.remove('hidden');
+        }
     }
 
-    function exportarPDF() {
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF();
-        const conteudo = document.getElementById('relatorio').innerHTML;
-
-        pdf.html(conteudo, {
-            callback: function (pdf) {
-                pdf.save('relatorio_convidados.pdf');
-            }
-        });
+    function adicionarConvidado() {
+        const container = document.getElementById('convidados-container');
+        const div = document.createElement('div');
+        div.className = 'form-group';
+        div.innerHTML = `
+            <label>Posto/Graduação:</label>
+            <select>
+                <option value="Sd">Sd</option>
+                <option value="Cb">Cb</option>
+                <option value="Sgt">Sgt</option>
+                <option value="ST">ST</option>
+                <option value="Ten">Ten</option>
+                <option value="CAP">CAP</option>
+                <option value="MAJ">MAJ</option>
+                <option value="TC">TC</option>
+                <option value="CEL">CEL</option>
+            </select>
+            <label>Nome do Convidado:</label>
+            <input type="text" placeholder="Digite o nome completo">
+            <div>
+                <label>Acompanhante:</label>
+                <input type="checkbox" onchange="atualizarContador()">
+            </div>
+        `;
+        container.appendChild(div);
+        atualizarContador();
     }
 
-    function exportarExcel() {
-        const tabela = document.querySelector('#relatorio table');
-        let csv = '';
+    function atualizarContador() {
+        const container = document.getElementById('convidados-container');
+        const count = Array.from(container.getElementsByClassName('form-group')).reduce((total, group) => {
+            const checkbox = group.querySelector('input[type="checkbox"]');
+            const nomeInput = group.querySelector('input[type="text"]');
+            if (nomeInput.value.trim()) {
+                return total + (checkbox.checked ? 2 : 1);
+            }
+            return total;
+        }, 0);
+        document.getElementById('convidados-counter').textContent = count;
+    }
 
-        for (let row of tabela.rows) {
-            const cols = Array.from(row.cells).map(cell => `"${cell.textContent}"`).join(',');
-            csv += `${cols}\n`;
+    async function salvarConvidados() {
+        const container = document.getElementById('convidados-container');
+        const convidados = [];
+        container.querySelectorAll('.form-group').forEach(group => {
+            const posto = group.querySelector('select').value;
+            const nome = group.querySelector('input[type="text"]').value.trim();
+            const acompanhante = group.querySelector('input[type="checkbox"]').checked;
+            if (nome) {
+                convidados.push({ posto, nome, acompanhante });
+            }
+        });
+        await db.collection('convidados').doc(matriculaAtual).set({
+            aluno: nomeAlunoAtual,
+            convidados
+        });
+        alert("Convidados salvos com sucesso!");
+    }
+
+    async function gerarRetaguarda() {
+        const senha = prompt("Digite a senha para acessar o relatório. Acesso exclusivo à Comissão de Formaturas:");
+        if (senha !== "Sgt2024ii") {
+            alert("Senha incorreta!");
+            return;
         }
 
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
+        const report = {};
+        const reportDiv = document.getElementById('convidados-report');
+        reportDiv.innerHTML = '';
 
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'relatorio_convidados.csv';
-        a.click();
-        URL.revokeObjectURL(url);
+        try {
+            const snapshot = await db.collection('convidados').get();
+
+            if (snapshot.empty) {
+                reportDiv.innerHTML = `<p>Nenhum dado disponível no momento.</p>`;
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (!data || !Array.isArray(data.convidados)) return;
+
+                data.convidados.forEach(convidado => {
+                    const key = `${convidado.posto} - ${convidado.nome}`;
+                    if (!report[key]) report[key] = { count: 0, alunos: [] };
+                    report[key].count++;
+                    report[key].alunos.push(data.aluno);
+                });
+            });
+
+            for (const [convidado, info] of Object.entries(report)) {
+                const div = document.createElement('div');
+                div.className = 'report-item';
+                div.innerHTML = `
+                    <h3>${convidado}</h3>
+                    <p>Convites: ${info.count}</p>
+                    <p>Convidado por: ${info.alunos.join(', ')}</p>
+                `;
+                reportDiv.appendChild(div);
+            }
+
+            document.getElementById('retaguarda').classList.remove('hidden');
+        } catch (error) {
+            console.error("Erro ao gerar relatório:", error);
+            alert("Houve um problema ao gerar o relatório.");
+        }
     }
 
-    function removeConvidado(key) {
-        db.ref(`convidados/${key}`).remove();
-        location.reload(); // Atualizar lista após remover
+    function ocultarRelatorio() {
+        document.getElementById('retaguarda').classList.add('hidden');
     }
 </script>
 </body>
