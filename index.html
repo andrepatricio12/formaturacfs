@@ -1,92 +1,320 @@
-    function carregarConvidados() {
-      db.collection("convidados")
-        .where("formador", "==", userMatricula)
-        .get()
-        .then((querySnapshot) => {
-          const lista = document.getElementById("lista-convidados");
-          lista.innerHTML = "";
-          let contador = 0;
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Convidados Militares</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f5f0;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        h1, h2, h3 {
+            text-align: center;
+            color: #004d40;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        .form-group input, .form-group select {
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            width: 100%;
+        }
+        #matricula {
+            width: calc(70% - 10px);
+            display: inline-block;
+        }
+        button {
+            padding: 8px;
+            margin: 5px;
+            background-color: #ff6666;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: calc(28%);
+            display: inline-block;
+        }
+        button:hover {
+            background-color: #ff4d4d;
+        }
+        .hidden {
+            display: none;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .report-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .counter {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 18px;
+            color: #004d40;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>Controle de Convidados Militares</h1>
+    <div id="login-form">
+        <div class="form-group">
+            <label for="matricula">Digite sua matrícula:</label>
+            <input type="text" id="matricula" placeholder="Digite sua matrícula" maxlength="8">
+            <button onclick="login()">Entrar</button>
+        </div>
+        <div id="login-error" class="error hidden">Matrícula não encontrada. Por favor, tente novamente.</div>
+    </div>
 
-          querySnapshot.forEach((doc) => {
-            const convidado = doc.data();
-            contador += convidado.acompanhante ? 2 : 1;
+    <div id="convidados-form" class="hidden">
+        <h2 id="aluno-nome"></h2>
+        <h3>Escolha seus convidados</h3>
+        <div id="convidados-container">
+            <div class="form-group">
+                <label for="posto0">Posto/Graduação:</label>
+                <select id="posto0">
+                    <option value="Sd">Sd</option>
+                    <option value="Cb">Cb</option>
+                    <option value="Sgt">Sgt</option>
+                    <option value="ST">ST</option>
+                    <option value="Ten">Ten</option>
+                    <option value="CAP">CAP</option>
+                    <option value="MAJ">MAJ</option>
+                    <option value="TC">TC</option>
+                    <option value="CEL">CEL</option>
+                </select>
+                <label for="nome0">Nome do Convidado:</label>
+                <input type="text" id="nome0" placeholder="Digite o nome completo">
+                <div>
+                    <label for="acompanhante0">Acompanhante:</label>
+                    <input type="checkbox" id="acompanhante0" onchange="atualizarContador()">
+                </div>
+            </div>
+        </div>
+        <button onclick="adicionarConvidado()">+ Outro</button>
+        <div class="counter">Contagem de convidados: <span id="convidados-counter">0</span></div>
+        <div style="display: flex; justify-content: space-between;">
+            <button onclick="salvarConvidados()">Salvar</button>
+            <button onclick="gerarRetaguarda()">Relatório</button>
+        </div>
+    </div>
 
-            const item = document.createElement("li");
-            item.className = "convidado-item";
-            item.innerText = `${convidado.posto} ${convidado.nomeGuerra} ${convidado.acompanhante ? "(com acompanhante)" : ""}`;
-            lista.appendChild(item);
-          });
+    <div id="retaguarda" class="hidden">
+        <h2>Relatório de Convidados</h2>
+        <div id="convidados-report"></div>
+        <button onclick="ocultarRelatorio()">Ocultar Relatório</button>
+    </div>
+</div>
 
-          document.getElementById("contador-convidados").innerText = contador;
-        }).catch((error) => {
-          console.error("Erro ao carregar convidados:", error);
-        });
+<script>
+    // Configuração do Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
+        authDomain: "convites-7dd28.firebaseapp.com",
+        projectId: "convites-7dd28",
+        storageBucket: "convites-7dd28.appspot.com",
+        messagingSenderId: "294544246887",
+        appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
+        measurementId: "G-HGFP0YSMLV"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const alunos = {
+        "9287027": "ELIENAR FARIAS",
+        "9306820": "NAZARETH LIMA GOEDERT",
+        "9303219": "CARLA DE LUCA LINHARES",
+        "9287124": "LEANDRO GHELLERE",
+        "9300350": "TIAGO LUIZ CLEMES",
+        "9288350": "MARCOS AURÉLIO LUIZ DUARTE",
+        "9320547": "ANDRÉ LUIS PATRÍCIO",
+        "9288520": "MATHEUS ROSSI LONGO",
+        "9320555": "RICARDO MESQUITA DE MEDEIROS",
+        "9320601": "JOSÉ RENATO COSTA",
+        "9307800": "JEAN CARLOS PEREIRA MACHADO",
+        "9300600": "AILTON BOZELLO DE BITTENCOURT",
+        "9300341": "TIAGO SANTOS DE SOUZA",
+        "9316230": "RODRIGO SILVA DOS SANTOS",
+        "9308652": "ANDERSON ROVEDA",
+        "9333967": "MAYARA ZILI DA SILVA",
+        "9316221": "MARCOS ADRIANO DAL PONT",
+        "9333860": "SARAH WAGNER ZANATTA",
+        "9329730": "FELIPE LUMERTZ DA SILVA",
+        "9316116": "JAQUES ROCHA DE SOUZA",
+        "9329340": "ÉZIO FRANCISCO FERNANDES",
+        "9329382": "EDERSON FRANÇA DE MACHADO",
+        "6606032": "ROBSON GOMES HAHN",
+        "9339558": "EVANDRO ANASTÁCIO TEIXEIRA",
+        "9339329": "TIAGO ANSELMO VALNIER",
+        "9287205": "ALEXANDRE DA LUZ",
+        "9307745": "WANDERSON RICARDO DE CARVALHO",
+        "9316159": "ANDERSON DOS SANTOS ROSA",
+        "9320563": "IURI CÚRCIO CARRER",
+        "6718680": "LAURO TOGNON NETO",
+        "9330097": "PATRICK CARDOSO DE RAMOS",
+        "9330356": "BRUNA DA SILVA PIRES",
+        "3847446": "DAIANA PEREIRA",
+        "9329056": "VINICIUS JOVELINO COSTA",
+        "9339477": "DANIEL SERAFIM PESSI"
+    };
+
+    let matriculaAtual = "";
+    let nomeAlunoAtual = "";
+    let convidados = [];
+
+    function login() {
+        const matriculaInput = document.getElementById('matricula').value.trim();
+        const errorDiv = document.getElementById('login-error');
+        if (alunos[matriculaInput]) {
+            matriculaAtual = matriculaInput;
+            nomeAlunoAtual = alunos[matriculaInput];
+            document.getElementById('aluno-nome').textContent = `Bem-vindo(a), ${nomeAlunoAtual}`;
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('convidados-form').classList.remove('hidden');
+            errorDiv.classList.add('hidden');
+            atualizarContador();
+        } else {
+            errorDiv.classList.remove('hidden');
+        }
     }
 
-    function gerarRelatorio() {
-      db.collection("convidados")
-        .get()
-        .then((querySnapshot) => {
-          const lista = document.getElementById("lista-relatorio");
-          lista.innerHTML = "";
-          const relatorio = {};
-
-          querySnapshot.forEach((doc) => {
-            const { nomeGuerra, formador } = doc.data();
-            if (!relatorio[nomeGuerra]) {
-              relatorio[nomeGuerra] = { count: 0, formadores: [] };
-            }
-            relatorio[nomeGuerra].count += 1;
-            if (!relatorio[nomeGuerra].formadores.includes(formador)) {
-              relatorio[nomeGuerra].formadores.push(formador);
-            }
-          });
-
-          for (const [nome, data] of Object.entries(relatorio)) {
-            const item = document.createElement("li");
-            item.innerText = `${nome}: ${data.count} convites (${data.formadores.join(", ")})`;
-            lista.appendChild(item);
-          }
-
-          document.getElementById("relatorio").style.display = "block";
-        }).catch((error) => {
-          console.error("Erro ao gerar relatório:", error);
-        });
+    function adicionarConvidado() {
+        const container = document.getElementById('convidados-container');
+        const div = document.createElement('div');
+        div.className = 'form-group';
+        div.innerHTML = `
+            <label>Posto/Graduação:</label>
+            <select>
+                <option value="Sd">Sd</option>
+                <option value="Cb">Cb</option>
+                <option value="Sgt">Sgt</option>
+                <option value="ST">ST</option>
+                <option value="Ten">Ten</option>
+                <option value="CAP">CAP</option>
+                <option value="MAJ">MAJ</option>
+                <option value="TC">TC</option>
+                <option value="CEL">CEL</option>
+            </select>
+            <label>Nome do Convidado:</label>
+            <input type="text" placeholder="Digite o nome completo">
+            <div>
+                <label>Acompanhante:</label>
+                <input type="checkbox" onchange="atualizarContador()">
+            </div>
+        `;
+        container.appendChild(div);
+        atualizarContador();
     }
 
-    function exportarCSV() {
-      db.collection("convidados")
-        .get()
-        .then((querySnapshot) => {
-          let csv = "Nome,Convites,Formadores\n";
-          const relatorio = {};
-
-          querySnapshot.forEach((doc) => {
-            const { nomeGuerra, formador } = doc.data();
-            if (!relatorio[nomeGuerra]) {
-              relatorio[nomeGuerra] = { count: 0, formadores: [] };
+    function atualizarContador() {
+        const container = document.getElementById('convidados-container');
+        const count = Array.from(container.getElementsByClassName('form-group')).reduce((total, group) => {
+            const checkbox = group.querySelector('input[type="checkbox"]');
+            const nomeInput = group.querySelector('input[type="text"]');
+            if (nomeInput.value.trim()) {
+                return total + (checkbox.checked ? 2 : 1);
             }
-            relatorio[nomeGuerra].count += 1;
-            if (!relatorio[nomeGuerra].formadores.includes(formador)) {
-              relatorio[nomeGuerra].formadores.push(formador);
-            }
-          });
-
-          for (const [nome, data] of Object.entries(relatorio)) {
-            csv += `${nome},${data.count},${data.formadores.join(";")}\n`;
-          }
-
-          const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = "relatorio_convidados.csv";
-          link.click();
-          URL.revokeObjectURL(url);
-        }).catch((error) => {
-          console.error("Erro ao exportar CSV:", error);
-        });
+            return total;
+        }, 0);
+        document.getElementById('convidados-counter').textContent = count;
     }
-  </script>
+
+    async function salvarConvidados() {
+        const container = document.getElementById('convidados-container');
+        const convidados = [];
+        container.querySelectorAll('.form-group').forEach(group => {
+            const posto = group.querySelector('select').value;
+            const nome = group.querySelector('input[type="text"]').value.trim();
+            const acompanhante = group.querySelector('input[type="checkbox"]').checked;
+            if (nome) {
+                convidados.push({ posto, nome, acompanhante });
+            }
+        });
+        await db.collection('convidados').doc(matriculaAtual).set({
+            aluno: nomeAlunoAtual,
+            convidados
+        });
+        alert("Convidados salvos com sucesso!");
+    }
+
+    async function gerarRetaguarda() {
+        const senha = prompt("Digite a senha para acessar o relatório. Acesso exclusivo à Comissão de Formaturas:");
+        if (senha !== "Sgt2024ii") {
+            alert("Senha incorreta!");
+            return;
+        }
+
+        const report = {};
+        const reportDiv = document.getElementById('convidados-report');
+        reportDiv.innerHTML = '';
+
+        try {
+            const snapshot = await db.collection('convidados').get();
+
+            if (snapshot.empty) {
+                reportDiv.innerHTML = `<p>Nenhum dado disponível no momento.</p>`;
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (!data || !Array.isArray(data.convidados)) return;
+
+                data.convidados.forEach(convidado => {
+                    const key = `${convidado.posto} - ${convidado.nome}`;
+                    if (!report[key]) report[key] = { count: 0, alunos: [] };
+                    report[key].count++;
+                    report[key].alunos.push(data.aluno);
+                });
+            });
+
+            for (const [convidado, info] of Object.entries(report)) {
+                const div = document.createElement('div');
+                div.className = 'report-item';
+                div.innerHTML = `
+                    <h3>${convidado}</h3>
+                    <p>Convites: ${info.count}</p>
+                    <p>Convidado por: ${info.alunos.join(', ')}</p>
+                `;
+                reportDiv.appendChild(div);
+            }
+
+            document.getElementById('retaguarda').classList.remove('hidden');
+        } catch (error) {
+            console.error("Erro ao gerar relatório:", error);
+            alert("Houve um problema ao gerar o relatório.");
+        }
+    }
+
+    function ocultarRelatorio() {
+        document.getElementById('retaguarda').classList.add('hidden');
+    }
+</script>
 </body>
 </html>
