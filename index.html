@@ -93,111 +93,56 @@
             border-radius: 5px;
             background-color: #f9f9f9;
         }
-        
-        <div id="convidados-form" class="hidden">
-    <h2 id="aluno-nome"></h2>
-    <h3>Escolha seus convidados</h3>
-    <div class="form-group">
-        <label for="posto0">Posto/Graduação:</label>
-        <select id="posto0">
-            <option value="Sd">Sd</option>
-            <option value="Cb">Cb</option>
-            <option value="Sgt">Sgt</option>
-            <option value="ST">ST</option>
-            <option value="Ten">Ten</option>
-            <option value="CAP">CAP</option>
-            <option value="MAJ">MAJ</option>
-            <option value="TC">TC</option>
-            <option value="CEL">CEL</option>
-        </select>
-        <label for="nome0">Nome do Convidado:</label>
-        <input type="text" id="nome0" placeholder="Digite o nome">
-    </div>
-    <button onclick="adicionarConvidado()">Adicionar Convidado</button>
-    <ul id="meus-convidados"></ul>
-    <button onclick="salvarConvidados()">Salvar</button>
-    <button onclick="gerarRetaguarda()">Exibir Relatório</button> <!-- Botão para gerar relatório -->
-</div>
-
         button {
-    padding: 10px;
-    font-size: 1rem;
-    margin-top: 10px;
-    width: 100%; /* Ajuste automático ao tamanho do container */
-    border-radius: 5px;
-    border: none;
-    cursor: pointer;
-    background-color: #4CAF50; /* Verde para destacar */
-    color: white;
-}
-
-button:hover {
-    background-color: #45a049;
-}
-
-@media (max-width: 600px) {
-    body {
-        padding: 10px;
-    }
-    .container {
-        width: 100%;
-    }
-}
-
-
+            padding: 10px;
+            font-size: 1rem;
+            margin-top: 10px;
+            width: 100%;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                width: 100%;
+            }
+            .form-group label, .form-group select, .form-group input {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
     </style>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script>
         // Configuração do Firebase
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
-  authDomain: "convites-7dd28.firebaseapp.com",
-  projectId: "convites-7dd28",
-  storageBucket: "convites-7dd28.firebasestorage.app",
-  messagingSenderId: "294544246887",
-  appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
-  measurementId: "G-HGFP0YSMLV"
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
+            authDomain: "convites-7dd28.firebaseapp.com",
+            projectId: "convites-7dd28",
+            storageBucket: "convites-7dd28.firebasestorage.app",
+            messagingSenderId: "294544246887",
+            appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
+            measurementId: "G-HGFP0YSMLV"
+        };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        const alunos = { "9287027": "ELIENAR FARIAS",
-        "9306820": "NAZARETH LIMA GOEDERT",
-        "9303219": "CARLA DE LUCA LINHARES",
-        "9287124": "LEANDRO GHELLERE",
-        "9300350": "TIAGO LUIZ CLEMES",
-        "9288350": "MARCOS AURÉLIO LUIZ DUARTE",
-        "9320547": "ANDRÉ LUIS PATRÍCIO",
-        "9288520": "MATHEUS ROSSI LONGO",
-        "9320555": "RICARDO MESQUITA DE MEDEIROS",
-        "9320601": "JOSÉ RENATO COSTA",
-        "9307800": "JEAN CARLOS PEREIRA MACHADO",
-        "9300600": "AILTON BOZELLO DE BITTENCOURT",
-        "9300341": "TIAGO SANTOS DE SOUZA",
-        "9316230": "RODRIGO SILVA DOS SANTOS",
-        "9308652": "ANDERSON ROVEDA",
-        "9333967": "MAYARA ZILI DA SILVA",
-        "9316221": "MARCOS ADRIANO DAL PONT",
-        "9333860": "SARAH WAGNER ZANATTA",
-        "9329730": "FELIPE LUMERTZ DA SILVA",
-        "9316116": "JAQUES ROCHA DE SOUZA",
-        "9329340": "ÉZIO FRANCISCO FERNANDES",
-        "9329382": "EDERSON FRANÇA DE MACHADO",
-        "6606032": "ROBSON GOMES HAHN",
-        "9339558": "EVANDRO ANASTÁCIO TEIXEIRA",
-        "9339329": "TIAGO ANSELMO VALNIER",
-        "9287205": "ALEXANDRE DA LUZ",
-        "9307745": "WANDERSON RICARDO DE CARVALHO",
-        "9316159": "ANDERSON DOS SANTOS ROSA",
-        "9320563": "IURI CÚRCIO CARRER",
-        "6718680": "LAURO TOGNON NETO",
-        "9330097": "PATRICK CARDOSO DE RAMOS",
-        "9330356": "BRUNA DA SILVA PIRES",
-        "3847446": "DAIANA PEREIRA",
-        "9329056": "VINICIUS JOVELINO COSTA",
-        "9339477": "DANIEL SERAFIM PESSI"};
+        const alunos = {
+            "9287027": "ELIENAR FARIAS",
+            "9306820": "NAZARETH LIMA GOEDERT",
+            "9303219": "CARLA DE LUCA LINHARES",
+            "9287124": "LEANDRO GHELLERE"
+            // Adicione mais alunos conforme necessário
+        };
 
         let matriculaAtual = "";
         let nomeAlunoAtual = "";
@@ -219,7 +164,7 @@ const firebaseConfig = {
 
         function adicionarConvidado() {
             const posto = document.getElementById('posto0').value;
-            const nome = formatarNome(document.getElementById('nome0').value.trim());
+            const nome = document.getElementById('nome0').value.trim();
             if (!nome) {
                 alert("Por favor, insira o nome do convidado.");
                 return;
@@ -239,23 +184,19 @@ const firebaseConfig = {
         }
 
         async function carregarConvidados() {
-            try {
-                const doc = await db.collection('convidados').doc(matriculaAtual).get();
-                if (doc.exists) {
-                    const data = doc.data();
-                    const lista = document.getElementById('meus-convidados');
-                    lista.innerHTML = '';
-                    data.convidados.forEach(convidado => {
-                        const li = document.createElement('li');
-                        li.innerHTML = `
-                            ${convidado.posto} - ${formatarNome(convidado.nome)} 
-                            <span class="delete-btn" onclick="removerConvidado(this)">Excluir</span>
-                        `;
-                        lista.appendChild(li);
-                    });
-                }
-            } catch (error) {
-                console.error("Erro ao carregar convidados:", error);
+            const doc = await db.collection('convidados').doc(matriculaAtual).get();
+            if (doc.exists) {
+                const data = doc.data();
+                const lista = document.getElementById('meus-convidados');
+                lista.innerHTML = '';
+                data.convidados.forEach(convidado => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        ${convidado.posto} - ${convidado.nome} 
+                        <span class="delete-btn" onclick="removerConvidado(this)">Excluir</span>
+                    `;
+                    lista.appendChild(li);
+                });
             }
         }
 
@@ -270,48 +211,36 @@ const firebaseConfig = {
         }
 
         async function gerarRetaguarda() {
-            try {
-                const snapshot = await db.collection('convidados').get();
-                const reportDiv = document.getElementById('convidados-report');
-                reportDiv.innerHTML = "";
-
-                const reportData = {};
-
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    data.convidados.forEach(convidado => {
-                        const key = `${convidado.posto} - ${formatarNome(convidado.nome)}`;
-                        if (!reportData[key]) {
-                            reportData[key] = { count: 0, convidadosPor: [] };
-                        }
-                        reportData[key].count++;
-                        reportData[key].convidadosPor.push(data.aluno);
-                    });
+            const snapshot = await db.collection('convidados').get();
+            const reportDiv = document.getElementById('convidados-report');
+            reportDiv.innerHTML = "";
+            const reportData = {};
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                data.convidados.forEach(convidado => {
+                    const key = `${convidado.posto} - ${convidado.nome}`;
+                    if (!reportData[key]) {
+                        reportData[key] = { count: 0, convidadosPor: [] };
+                    }
+                    reportData[key].count++;
+                    reportData[key].convidadosPor.push(data.aluno);
                 });
-
-                for (const [convidado, info] of Object.entries(reportData)) {
-                    const item = document.createElement('div');
-                    item.className = 'report-item';
-                    item.innerHTML = `
-                        <strong>${convidado}</strong><br>
-                        Quantidade de convites: ${info.count}<br>
-                        Convidado por: ${info.convidadosPor.join(", ")}
-                    `;
-                    reportDiv.appendChild(item);
-                }
-
-                document.getElementById('retaguarda').classList.remove('hidden');
-            } catch (error) {
-                console.error("Erro ao gerar relatório:", error);
+            });
+            for (const [convidado, info] of Object.entries(reportData)) {
+                const item = document.createElement('div');
+                item.className = 'report-item';
+                item.innerHTML = `
+                    <strong>${convidado}</strong><br>
+                    Quantidade de convites: ${info.count}<br>
+                    Convidado por: ${info.convidadosPor.join(", ")}
+                `;
+                reportDiv.appendChild(item);
             }
+            document.getElementById('retaguarda').classList.remove('hidden');
         }
 
         function ocultarRelatorio() {
             document.getElementById('retaguarda').classList.add('hidden');
-        }
-
-        function formatarNome(nome) {
-            return nome.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
         }
     </script>
 </head>
@@ -345,6 +274,7 @@ const firebaseConfig = {
         <button onclick="adicionarConvidado()">Adicionar Convidado</button>
         <ul id="meus-convidados"></ul>
         <button onclick="salvarConvidados()">Salvar</button>
+        <button onclick="gerarRetaguarda()">Exibir Relatório</button> <!-- Botão para relatório -->
     </div>
     <div id="retaguarda" class="hidden">
         <h2>Relatório de Convidados</h2>
