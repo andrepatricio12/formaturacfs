@@ -13,14 +13,14 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: #f0f0f0;
-            color: #000;
+            background-color: #ffffff;
+            color: #000000;
         }
         .container {
-            background-color: #fff;
+            background-color: #f9f9f9;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             max-width: 600px;
             width: 100%;
         }
@@ -29,53 +29,66 @@
             color: #333;
         }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 10px;
+        }
+        #matricula {
+            width: calc(70% - 10px);
+            display: inline-block;
+            padding: 8px;
+            margin-right: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        #login-form button {
+            padding: 8px;
+            display: inline-block;
+            background-color: #333;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #login-form button:hover {
+            background-color: #555;
         }
         .form-group input, .form-group select {
-            padding: 10px;
-            margin-bottom: 10px;
+            padding: 8px;
+            margin-bottom: 8px;
             border-radius: 5px;
             border: 1px solid #ddd;
             width: 100%;
-        }
-        button {
-            padding: 10px;
-            width: 100%;
-            border-radius: 5px;
-            border: none;
-            cursor: pointer;
-            background-color: #333;
-            color: white;
-            margin-top: 5px;
-        }
-        button:hover {
-            background-color: #555;
         }
         ul {
             list-style: none;
             padding: 0;
         }
         li {
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 5px;
             padding: 10px;
             margin-bottom: 10px;
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        .delete-link {
-            color: #007BFF;
-            cursor: pointer;
+        .delete-btn {
+            color: #555;
             text-decoration: underline;
+            cursor: pointer;
+            font-size: 0.9rem;
+            border: none;
+            background: none;
         }
-        .delete-link:hover {
-            color: #0056b3;
+        .delete-btn:hover {
+            color: #333;
+        }
+        .hidden {
+            display: none;
         }
         .report-item {
-            margin-bottom: 15px;
             padding: 10px;
+            margin-bottom: 15px;
             border: 1px solid #ddd;
             border-radius: 5px;
             background-color: #f9f9f9;
@@ -83,16 +96,137 @@
     </style>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script>
+        // Configuração do Firebase
+        const firebaseConfig = { /* Suas credenciais do Firebase */ };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const alunos = { "9287027": "ELIENAR FARIAS", /* Outros alunos */ };
+
+        let matriculaAtual = "";
+        let nomeAlunoAtual = "";
+
+        function login() {
+            const matriculaInput = document.getElementById('matricula').value.trim();
+            const errorDiv = document.getElementById('login-error');
+            if (alunos[matriculaInput]) {
+                matriculaAtual = matriculaInput;
+                nomeAlunoAtual = alunos[matriculaInput];
+                document.getElementById('aluno-nome').textContent = `Bem-vindo(a), ${nomeAlunoAtual}`;
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('convidados-form').classList.remove('hidden');
+                carregarConvidados();
+            } else {
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        function adicionarConvidado() {
+            const posto = document.getElementById('posto0').value;
+            const nome = formatarNome(document.getElementById('nome0').value.trim());
+            if (!nome) {
+                alert("Por favor, insira o nome do convidado.");
+                return;
+            }
+            const lista = document.getElementById('meus-convidados');
+            const li = document.createElement('li');
+            li.innerHTML = `
+                ${posto} - ${nome} 
+                <span class="delete-btn" onclick="removerConvidado(this)">Excluir</span>
+            `;
+            lista.appendChild(li);
+            document.getElementById('nome0').value = "";
+        }
+
+        function removerConvidado(btn) {
+            btn.parentElement.remove();
+        }
+
+        async function carregarConvidados() {
+            try {
+                const doc = await db.collection('convidados').doc(matriculaAtual).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    const lista = document.getElementById('meus-convidados');
+                    lista.innerHTML = '';
+                    data.convidados.forEach(convidado => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            ${convidado.posto} - ${formatarNome(convidado.nome)} 
+                            <span class="delete-btn" onclick="removerConvidado(this)">Excluir</span>
+                        `;
+                        lista.appendChild(li);
+                    });
+                }
+            } catch (error) {
+                console.error("Erro ao carregar convidados:", error);
+            }
+        }
+
+        async function salvarConvidados() {
+            const lista = document.getElementById('meus-convidados');
+            const convidados = Array.from(lista.children).map(li => {
+                const [posto, nome] = li.textContent.split(" - ");
+                return { posto, nome: nome.replace("Excluir", "").trim() };
+            });
+            await db.collection('convidados').doc(matriculaAtual).set({ aluno: nomeAlunoAtual, convidados });
+            alert("Convidados salvos com sucesso!");
+        }
+
+        async function gerarRetaguarda() {
+            try {
+                const snapshot = await db.collection('convidados').get();
+                const reportDiv = document.getElementById('convidados-report');
+                reportDiv.innerHTML = "";
+
+                const reportData = {};
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    data.convidados.forEach(convidado => {
+                        const key = `${convidado.posto} - ${formatarNome(convidado.nome)}`;
+                        if (!reportData[key]) {
+                            reportData[key] = { count: 0, convidadosPor: [] };
+                        }
+                        reportData[key].count++;
+                        reportData[key].convidadosPor.push(data.aluno);
+                    });
+                });
+
+                for (const [convidado, info] of Object.entries(reportData)) {
+                    const item = document.createElement('div');
+                    item.className = 'report-item';
+                    item.innerHTML = `
+                        <strong>${convidado}</strong><br>
+                        Quantidade de convites: ${info.count}<br>
+                        Convidado por: ${info.convidadosPor.join(", ")}
+                    `;
+                    reportDiv.appendChild(item);
+                }
+
+                document.getElementById('retaguarda').classList.remove('hidden');
+            } catch (error) {
+                console.error("Erro ao gerar relatório:", error);
+            }
+        }
+
+        function ocultarRelatorio() {
+            document.getElementById('retaguarda').classList.add('hidden');
+        }
+
+        function formatarNome(nome) {
+            return nome.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+        }
+    </script>
 </head>
 <body>
 <div class="container">
     <h1>Controle de Convidados Militares</h1>
     <div id="login-form">
-        <div class="form-group">
-            <input type="text" id="matricula" placeholder="Digite sua matrícula" maxlength="8">
-            <button onclick="login()">Entrar</button>
-        </div>
-        <div id="login-error" class="hidden">Matrícula não encontrada. Por favor, tente novamente.</div>
+        <input type="text" id="matricula" placeholder="Digite sua matrícula" maxlength="8">
+        <button onclick="login()">Entrar</button>
+        <div id="login-error" class="error hidden">Matrícula não encontrada. Por favor, tente novamente.</div>
     </div>
     <div id="convidados-form" class="hidden">
         <h2 id="aluno-nome"></h2>
@@ -111,15 +245,11 @@
                 <option value="CEL">CEL</option>
             </select>
             <label for="nome0">Nome do Convidado:</label>
-            <input type="text" id="nome0" placeholder="Digite o nome de Guerra">
+            <input type="text" id="nome0" placeholder="Digite o nome">
         </div>
         <button onclick="adicionarConvidado()">Adicionar Convidado</button>
-        <h3>Meus Convidados</h3>
         <ul id="meus-convidados"></ul>
-        <div style="display: flex; justify-content: space-between;">
-            <button onclick="salvarConvidados()">Salvar</button>
-            <button onclick="gerarRetaguarda()">Relatório</button>
-        </div>
+        <button onclick="salvarConvidados()">Salvar</button>
     </div>
     <div id="retaguarda" class="hidden">
         <h2>Relatório de Convidados</h2>
@@ -127,94 +257,5 @@
         <button onclick="ocultarRelatorio()">Ocultar Relatório</button>
     </div>
 </div>
-<script>
-    const firebaseConfig = {
-        apiKey: "SUA_API_KEY",
-        authDomain: "SEU_AUTH_DOMAIN",
-        projectId: "SEU_PROJECT_ID",
-        storageBucket: "SEU_STORAGE_BUCKET",
-        messagingSenderId: "SEU_SENDER_ID",
-        appId: "SEU_APP_ID"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    const alunos = {
-        "9287027": "ELIENAR FARIAS",
-        "9306820": "NAZARETH LIMA GOEDERT",
-        // Outros alunos...
-    };
-
-    let matriculaAtual = "";
-    let nomeAlunoAtual = "";
-
-    function login() {
-        const matricula = document.getElementById("matricula").value.trim();
-        if (alunos[matricula]) {
-            matriculaAtual = matricula;
-            nomeAlunoAtual = alunos[matricula];
-            document.getElementById("aluno-nome").textContent = `Bem-vindo(a), ${nomeAlunoAtual}`;
-            document.getElementById("login-form").classList.add("hidden");
-            document.getElementById("convidados-form").classList.remove("hidden");
-        } else {
-            document.getElementById("login-error").classList.remove("hidden");
-        }
-    }
-
-    function adicionarConvidado() {
-        const posto = document.getElementById("posto0").value;
-        const nome = document.getElementById("nome0").value.trim();
-        if (!nome) return alert("Insira o nome do convidado!");
-        const lista = document.getElementById("meus-convidados");
-        const li = document.createElement("li");
-        li.innerHTML = `${posto} - ${nome} <span class="delete-link" onclick="removerConvidado(this)">Excluir</span>`;
-        lista.appendChild(li);
-    }
-
-    function removerConvidado(link) {
-        link.parentElement.remove();
-    }
-
-    async function salvarConvidados() {
-        const convidados = Array.from(document.querySelectorAll("#meus-convidados li"))
-            .map(li => li.textContent.replace("Excluir", "").trim());
-        await db.collection("convidados").doc(matriculaAtual).set({ aluno: nomeAlunoAtual, convidados });
-        alert("Convidados salvos com sucesso!");
-    }
-
-    async function gerarRetaguarda() {
-        const snapshot = await db.collection("convidados").get();
-        const reportDiv = document.getElementById("convidados-report");
-        reportDiv.innerHTML = "";
-
-        const mapaConvidados = {};
-
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            data.convidados.forEach(convidado => {
-                if (!mapaConvidados[convidado]) mapaConvidados[convidado] = [];
-                mapaConvidados[convidado].push(data.aluno);
-            });
-        });
-
-        Object.entries(mapaConvidados).forEach(([convidado, convidadosPor]) => {
-            const item = document.createElement("div");
-            item.className = "report-item";
-            item.innerHTML = `
-                <p><strong>Convidado:</strong> ${convidado}</p>
-                <p><strong>Número de convites:</strong> ${convidadosPor.length}</p>
-                <p><strong>Convidado por:</strong> ${convidadosPor.join(", ")}</p>
-            `;
-            reportDiv.appendChild(item);
-        });
-
-        document.getElementById("retaguarda").classList.remove("hidden");
-    }
-
-    function ocultarRelatorio() {
-        document.getElementById("retaguarda").classList.add("hidden");
-    }
-</script>
 </body>
 </html>
