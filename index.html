@@ -163,6 +163,7 @@
 
         let matriculaAtual = "";
         let nomeAlunoAtual = "";
+        let contadorConvidados = 0; // Variável para contar os convidados
 
         function formatarNome(nome) {
             return nome.split(" ")
@@ -188,10 +189,12 @@
         function adicionarConvidado() {
             const posto = document.getElementById('posto0').value;
             const nome = formatarNome(document.getElementById('nome0').value.trim());
+            const levaAcompanhante = document.getElementById('acompanhante').checked; // Verifica se o checkbox está marcado
             if (!nome) {
                 alert("Por favor, insira o nome de Guerra do convidado.");
                 return;
             }
+
             const lista = document.getElementById('meus-convidados');
             const li = document.createElement('li');
             li.innerHTML = `
@@ -199,7 +202,18 @@
                 <span class="delete-btn" onclick="removerConvidado(this)">Excluir</span>
             `;
             lista.appendChild(li);
+
+            // Incrementa o contador de convidados
+            contadorConvidados += levaAcompanhante ? 2 : 1;
+            atualizarContador();
+
             document.getElementById('nome0').value = "";
+            document.getElementById('acompanhante').checked = false; // Reseta o checkbox de acompanhante
+        }
+
+        function atualizarContador() {
+            const contador = document.getElementById('contador-convidados');
+            contador.textContent = `Número de Convidados: ${contadorConvidados}`;
         }
 
         async function carregarConvidados() {
@@ -246,55 +260,58 @@
                 });
             });
             for (const [nome, info] of Object.entries(reportData)) {
-    const item = document.createElement('div');
-    item.className = 'report-item';
-    item.innerHTML = `
-        <strong>${formatarNome(nome)}</strong><br>
-        Quantidade de convites: ${info.count}<br>
-        Convidado por: ${info.convidadosPor.map(formatarNome).join(", ")}
-    `;
-    reportDiv.appendChild(item);
-}
-
+                const item = document.createElement('div');
+                item.className = 'report-item';
+                item.innerHTML = `
+                    <strong>${formatarNome(nome)}</strong><br>
+                    Quantidade de convites: ${info.count}<br>
+                    Convidado por: ${info.convidadosPor.map(formatarNome).join(", ")}
+                `;
+                reportDiv.appendChild(item);
+            }
             document.getElementById('retaguarda').classList.remove('hidden');
         }
+
         function removerConvidado(btn) {
-    // Encontrando o elemento `li` do convidado
-    const li = btn.parentElement;
-    const nomeConvidado = li.textContent.split(" - ")[1].replace("Excluir", "").trim(); // Obtendo nome do convidado
+            // Encontrando o elemento `li` do convidado
+            const li = btn.parentElement;
+            const nomeConvidado = li.textContent.split(" - ")[1].replace("Excluir", "").trim(); // Obtendo nome do convidado
 
-    // Remover o item da lista do DOM
-    li.remove();
+            // Remover o item da lista do DOM
+            li.remove();
 
-    // Atualizar a lista no Firestore
-    atualizarConvidadosFirestore(nomeConvidado);
-}
+            // Atualizar o contador de convidados
+            contadorConvidados--; // Subtrai 1, pois estamos removendo um convidado
+            atualizarContador();
 
-async function atualizarConvidadosFirestore(nomeConvidado) {
-    try {
-        const docRef = db.collection('convidados').doc(matriculaAtual);
-        const doc = await docRef.get();
-        
-        if (doc.exists) {
-            const data = doc.data();
-            // Filtrando os convidados para remover o excluído
-            const convidadosAtualizados = data.convidados.filter(convidado => convidado.nome !== nomeConvidado);
-
-            // Atualizando o Firestore com a lista atualizada
-            await docRef.set({
-                aluno: nomeAlunoAtual,
-                convidados: convidadosAtualizados
-            });
-
-            alert("Convidado excluído com sucesso!");
-        } else {
-            alert("Erro: Dados não encontrados no Firestore.");
+            // Atualizar a lista no Firestore
+            atualizarConvidadosFirestore(nomeConvidado);
         }
-    } catch (error) {
-        console.error("Erro ao atualizar Firestore:", error);
-    }
-}
 
+        async function atualizarConvidadosFirestore(nomeConvidado) {
+            try {
+                const docRef = db.collection('convidados').doc(matriculaAtual);
+                const doc = await docRef.get();
+
+                if (doc.exists) {
+                    const data = doc.data();
+                    // Filtrando os convidados para remover o excluído
+                    const convidadosAtualizados = data.convidados.filter(convidado => convidado.nome !== nomeConvidado);
+
+                    // Atualizando o Firestore com a lista atualizada
+                    await docRef.set({
+                        aluno: nomeAlunoAtual,
+                        convidados: convidadosAtualizados
+                    });
+
+                    alert("Convidado excluído com sucesso!");
+                } else {
+                    alert("Erro: Dados não encontrados no Firestore.");
+                }
+            } catch (error) {
+                console.error("Erro ao atualizar Firestore:", error);
+            }
+        }
 
         function ocultarRelatorio() {
             document.getElementById('retaguarda').classList.add('hidden');
@@ -327,11 +344,14 @@ async function atualizarConvidadosFirestore(nomeConvidado) {
             </select>
             <label for="nome0">Nome de Guerra do Convidado:</label>
             <input type="text" id="nome0" placeholder="Digite o nome">
+            <label for="acompanhante">Levará acompanhante?</label>
+            <input type="checkbox" id="acompanhante">
         </div>
         <button onclick="adicionarConvidado()">Adicionar Convidado</button>
         <ul id="meus-convidados"></ul>
         <button onclick="salvarConvidados()">Salvar</button>
         <button onclick="gerarRetaguarda()">Exibir Relatório</button>
+        <div id="contador-convidados">Número de Convidados: 0</div> <!-- Exibição do contador -->
     </div>
     <div id="retaguarda" class="hidden">
         <h2>Relatório de Convidados</h2>
