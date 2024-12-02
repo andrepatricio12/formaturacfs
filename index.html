@@ -93,6 +93,57 @@
             border-radius: 5px;
             background-color: #f9f9f9;
         }
+        
+        <div id="convidados-form" class="hidden">
+    <h2 id="aluno-nome"></h2>
+    <h3>Escolha seus convidados</h3>
+    <div class="form-group">
+        <label for="posto0">Posto/Graduação:</label>
+        <select id="posto0">
+            <option value="Sd">Sd</option>
+            <option value="Cb">Cb</option>
+            <option value="Sgt">Sgt</option>
+            <option value="ST">ST</option>
+            <option value="Ten">Ten</option>
+            <option value="CAP">CAP</option>
+            <option value="MAJ">MAJ</option>
+            <option value="TC">TC</option>
+            <option value="CEL">CEL</option>
+        </select>
+        <label for="nome0">Nome do Convidado:</label>
+        <input type="text" id="nome0" placeholder="Digite o nome">
+    </div>
+    <button onclick="adicionarConvidado()">Adicionar Convidado</button>
+    <ul id="meus-convidados"></ul>
+    <button onclick="salvarConvidados()">Salvar</button>
+    <button onclick="gerarRetaguarda()">Exibir Relatório</button> <!-- Botão para relatório -->
+</div>
+        button {
+    padding: 10px;
+    font-size: 1rem;
+    margin-top: 10px;
+    width: 100%; /* Ajuste automático ao tamanho do container */
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    background-color: #4CAF50; /* Verde para destacar */
+    color: white;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+    .container {
+        width: 100%;
+    }
+}
+
+
     </style>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
