@@ -207,9 +207,16 @@
     contadorConvidados += levaAcompanhante ? 2 : 1;
     atualizarContador();
 
+    // Armazenar o convidado com o posto no Firestore
+    const convidado = { posto, nome, levaAcompanhante };
+
+    // Aqui, você pode armazenar os dados no Firestore como já foi feito anteriormente
+    // Adicione a lógica para armazenar convidado no Firestore ou qualquer outro banco de dados que você esteja usando.
+
     document.getElementById('nome0').value = "";
     document.getElementById('acompanhante').checked = false; // Reseta o checkbox de acompanhante
 }
+
 
 
         function atualizarContador() {
@@ -289,7 +296,7 @@
         data.convidados.forEach(convidado => {
             const nomeFormatado = formatarNome(convidado.nome);
             if (!reportData[nomeFormatado]) {
-                reportData[nomeFormatado] = { count: 0, convidadosPor: [], acompanhante: false };
+                reportData[nomeFormatado] = { count: 0, convidadosPor: [], posto: convidado.posto, acompanhante: false };
             }
             reportData[nomeFormatado].count++;
             reportData[nomeFormatado].convidadosPor.push(data.aluno);
@@ -298,11 +305,12 @@
             }
         });
     });
+
     for (const [nome, info] of Object.entries(reportData)) {
         const item = document.createElement('div');
         item.className = 'report-item';
         item.innerHTML = `
-            <strong>${formatarNome(nome)}</strong><br>
+            <strong>${formatarNome(nome)} (${info.posto})</strong><br>
             Quantidade de convites: ${info.count}<br>
             Convidado por: ${info.convidadosPor.map(formatarNome).join(", ")}<br>
             ${info.acompanhante ? "Levará acompanhante." : "Não levará acompanhante."}
@@ -311,6 +319,7 @@
     }
     document.getElementById('retaguarda').classList.remove('hidden');
 }
+
 
 
         function removerConvidado(btn) {
