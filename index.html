@@ -1,4 +1,99 @@
-  <div id="login-form">
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Convidados Militares</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+            color: #000;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            width: 100%;
+        }
+        h1, h2, h3 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .form-group input, .form-group select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .form-group input {
+            width: 65%;
+        }
+        .form-group button {
+            padding: 8px 10px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .form-group button:hover {
+            background-color: #555;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .delete-link {
+            color: #007BFF;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 0.9em;
+        }
+        .delete-link:hover {
+            color: #0056b3;
+        }
+        .hidden {
+            display: none;
+        }
+        .report-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>Controle de Convidados Militares</h1>
+    <!-- Login Section -->
+    <div id="login-form">
         <div class="form-group">
             <input type="text" id="matricula" placeholder="Digite sua matrícula" maxlength="8">
             <button onclick="login()">Entrar</button>
@@ -42,3 +137,157 @@
         <button onclick="ocultarRelatorio()">Ocultar Relatório</button>
     </div>
 </div>
+
+<script>
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
+  authDomain: "convites-7dd28.firebaseapp.com",
+  projectId: "convites-7dd28",
+  storageBucket: "convites-7dd28.firebasestorage.app",
+  messagingSenderId: "294544246887",
+  appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
+  measurementId: "G-HGFP0YSMLV"
+};
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const alunos = {
+        "9287027": "ELIENAR FARIAS",
+        "9306820": "NAZARETH LIMA GOEDERT",
+        "9303219": "CARLA DE LUCA LINHARES",
+        "9287124": "LEANDRO GHELLERE",
+        "9300350": "TIAGO LUIZ CLEMES",
+        "9288350": "MARCOS AURÉLIO LUIZ DUARTE",
+        "9320547": "ANDRÉ LUIS PATRÍCIO",
+        "9288520": "MATHEUS ROSSI LONGO",
+        "9320555": "RICARDO MESQUITA DE MEDEIROS",
+        "9320601": "JOSÉ RENATO COSTA",
+        "9307800": "JEAN CARLOS PEREIRA MACHADO",
+        "9300600": "AILTON BOZELLO DE BITTENCOURT",
+        "9300341": "TIAGO SANTOS DE SOUZA",
+        "9316230": "RODRIGO SILVA DOS SANTOS",
+        "9308652": "ANDERSON ROVEDA",
+        "9333967": "MAYARA ZILI DA SILVA",
+        "9316221": "MARCOS ADRIANO DAL PONT",
+        "9333860": "SARAH WAGNER ZANATTA",
+        "9329730": "FELIPE LUMERTZ DA SILVA",
+        "9316116": "JAQUES ROCHA DE SOUZA",
+        "9329340": "ÉZIO FRANCISCO FERNANDES",
+        "9329382": "EDERSON FRANÇA DE MACHADO",
+        "6606032": "ROBSON GOMES HAHN",
+        "9339558": "EVANDRO ANASTÁCIO TEIXEIRA",
+        "9339329": "TIAGO ANSELMO VALNIER",
+        "9287205": "ALEXANDRE DA LUZ",
+        "9307745": "WANDERSON RICARDO DE CARVALHO",
+        "9316159": "ANDERSON DOS SANTOS ROSA",
+        "9320563": "IURI CÚRCIO CARRER",
+        "6718680": "LAURO TOGNON NETO",
+        "9330097": "PATRICK CARDOSO DE RAMOS",
+        "9330356": "BRUNA DA SILVA PIRES",
+        "3847446": "DAIANA PEREIRA",
+        "9329056": "VINICIUS JOVELINO COSTA",
+        "9339477": "DANIEL SERAFIM PESSI"
+    };
+
+    let matriculaAtual = "";
+    let nomeAlunoAtual = "";
+
+    function login() {
+        const matriculaInput = document.getElementById('matricula').value.trim();
+        const errorDiv = document.getElementById('login-error');
+        if (alunos[matriculaInput]) {
+            matriculaAtual = matriculaInput;
+            nomeAlunoAtual = alunos[matriculaInput];
+            document.getElementById('aluno-nome').textContent = `Bem-vindo(a), ${nomeAlunoAtual}`;
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('convidados-form').classList.remove('hidden');
+            carregarConvidados();
+        } else {
+            errorDiv.classList.remove('hidden');
+        }
+    }
+
+    function adicionarConvidado() {
+        const posto = document.getElementById('posto0').value;
+        let nome = document.getElementById('nome0').value.trim();
+        if (!nome) {
+            alert("Por favor, insira o nome de Guerra do convidado.");
+            return;
+        }
+        nome = nome.charAt(0).toUpperCase() + nome.slice(1);
+        const lista = document.getElementById('meus-convidados');
+        const li = document.createElement('li');
+        li.innerHTML = `${posto} - ${nome} <span class="delete-link" onclick="removerConvidado(this)">Excluir</span>`;
+        lista.appendChild(li);
+        document.getElementById('nome0').value = "";
+    }
+
+    function removerConvidado(link) {
+        const li = link.parentElement;
+        li.remove();
+    }
+
+    async function carregarConvidados() {
+        try {
+            const doc = await db.collection('convidados').doc(matriculaAtual).get();
+            if (doc.exists) {
+                const data = doc.data();
+                const lista = document.getElementById('meus-convidados');
+                lista.innerHTML = '';
+                data.convidados.forEach(convidado => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `${convidado.posto} - ${convidado.nome} <button class="delete-btn" onclick="removerConvidado(this)">Excluir</button>`;
+                    lista.appendChild(li);
+                });
+            }
+        } catch (error) {
+            console.error("Erro ao carregar convidados:", error);
+        }
+    }
+
+
+    async function salvarConvidados() {
+        const lista = document.getElementById('meus-convidados');
+        const convidados = Array.from(lista.children).map(li => {
+            const [posto, nome] = li.textContent.split(" - ");
+            return { posto, nome: nome.replace("Excluir", "").trim() };
+        });
+        await db.collection('convidados').doc(matriculaAtual).set({ aluno: nomeAlunoAtual, convidados });
+        alert("Convidados salvos com sucesso!");
+    }
+
+
+     async function gerarRetaguarda() {
+        try {
+            const snapshot = await db.collection('convidados').get();
+            const reportDiv = document.getElementById('convidados-report');
+            reportDiv.innerHTML = "";
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                data.convidados.forEach(convidado => {
+                    const item = document.createElement('div');
+                    item.className = 'report-item';
+                    item.innerHTML = `
+                        <strong>${convidado.posto} - ${convidado.nome}</strong><br>
+                        Convidado por: ${data.aluno}
+                    `;
+                    reportDiv.appendChild(item);
+                });
+            });
+
+            document.getElementById('retaguarda').classList.remove('hidden');
+        } catch (error) {
+            console.error("Erro ao gerar relatório:", error);
+        }
+    }
+
+
+    function ocultarRelatorio() {
+        document.getElementById('retaguarda').classList.add('hidden');
+    }
+</script>
+</body>
+</html>
