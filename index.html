@@ -47,11 +47,11 @@
             border-radius: 5px;
             border: none;
             cursor: pointer;
-            background-color: #333; /* Preto */
+            background-color: #333;
             color: white;
         }
         button:hover {
-            background-color: #555; /* Cinza escuro */
+            background-color: #555;
         }
         .form-group input, .form-group select {
             padding: 8px;
@@ -124,7 +124,7 @@
         const db = firebase.firestore();
 
         const alunos = {
-           "9287027": "ELIENAR FARIAS",
+            "9287027": "ELIENAR FARIAS",
         "9306820": "NAZARETH LIMA GOEDERT",
         "9303219": "CARLA DE LUCA LINHARES",
         "9287124": "LEANDRO GHELLERE",
@@ -183,26 +183,23 @@
             } else {
                 errorDiv.classList.remove('hidden');
             }
-            
-        }  function adicionarConvidado() {
+        }
+
+        function adicionarConvidado() {
             const posto = document.getElementById('posto0').value;
-            const nome = document.getElementById('nome0').value.trim();
+            const nome = formatarNome(document.getElementById('nome0').value.trim());
             if (!nome) {
                 alert("Por favor, insira o nome do convidado.");
                 return;
             }
             const lista = document.getElementById('meus-convidados');
             const li = document.createElement('li');
-            li.innerHTML = 
+            li.innerHTML = `
                 ${posto} - ${nome} 
                 <span class="delete-btn" onclick="removerConvidado(this)">Excluir</span>
-            ;
+            `;
             lista.appendChild(li);
             document.getElementById('nome0').value = "";
-        }
-
-        function removerConvidado(btn) {
-            btn.parentElement.remove();
         }
 
         async function carregarConvidados() {
@@ -213,10 +210,10 @@
                 lista.innerHTML = '';
                 data.convidados.forEach(convidado => {
                     const li = document.createElement('li');
-                    li.innerHTML = 
-                        ${convidado.posto} - ${convidado.nome} 
+                    li.innerHTML = `
+                        ${convidado.posto} - ${formatarNome(convidado.nome)} 
                         <span class="delete-btn" onclick="removerConvidado(this)">Excluir</span>
-                    ;
+                    `;
                     lista.appendChild(li);
                 });
             }
@@ -249,15 +246,16 @@
                 });
             });
             for (const [nome, info] of Object.entries(reportData)) {
-                const item = document.createElement('div');
-                item.className = 'report-item';
-                item.innerHTML = `
-                    <strong>${nome}</strong><br>
-                    Quantidade de convites: ${info.count}<br>
-                    Convidado por: ${info.convidadosPor.map(formatarNome).join(", ")}
-                `;
-                reportDiv.appendChild(item);
-            }
+    const item = document.createElement('div');
+    item.className = 'report-item';
+    item.innerHTML = `
+        <strong>${formatarNome(nome)}</strong><br>
+        Quantidade de convites: ${info.count}<br>
+        Convidado por: ${info.convidadosPor.map(formatarNome).join(", ")}
+    `;
+    reportDiv.appendChild(item);
+}
+
             document.getElementById('retaguarda').classList.remove('hidden');
         }
 
@@ -283,7 +281,7 @@
                 <option value="Sd">Sd</option>
                 <option value="Cb">Cb</option>
                 <option value="Sgt">Sgt</option>
-                 <option value="ST">ST</option>
+                <option value="ST">ST</option>
                 <option value="Ten">Ten</option>
                 <option value="CAP">CAP</option>
                 <option value="MAJ">MAJ</option>
@@ -293,6 +291,9 @@
             <label for="nome0">Nome do Convidado:</label>
             <input type="text" id="nome0" placeholder="Digite o nome">
         </div>
+        <button onclick="adicionarConvidado()">Adicionar Convidado</button>
+        <ul id="meus-convidados"></ul>
+        <button onclick="salvarConvidados()">Salvar</button>
         <button onclick="gerarRetaguarda()">Exibir Relatório</button>
     </div>
     <div id="retaguarda" class="hidden">
