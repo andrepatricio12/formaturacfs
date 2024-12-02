@@ -8,24 +8,27 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 0;
+            padding: 10px;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
-            background-color: #f0f5f0;
+            justify-content: flex-start;
+            min-height: 100vh;
+            background-color: #121212;
+            color: #ffffff;
         }
         .container {
-            background-color: #ffffff;
+            background-color: #1e1e1e;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid #444;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             max-width: 600px;
             width: 100%;
         }
         h1, h2, h3 {
             text-align: center;
-            color: #004d40;
+            color: #ffffff;
         }
         .form-group {
             margin-bottom: 10px;
@@ -34,47 +37,47 @@
             padding: 8px;
             margin-bottom: 8px;
             border-radius: 5px;
-            border: 1px solid #ddd;
+            border: 1px solid #444;
             width: 100%;
-        }
-        #matricula {
-            width: calc(70% - 10px);
-            display: inline-block;
+            background-color: #333;
+            color: #ffffff;
         }
         button {
             padding: 8px;
-            margin: 5px;
-            background-color: #ff6666;
-            color: white;
+            margin: 5px 0;
+            background-color: #333;
+            color: #ffffff;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            width: calc(28%);
-            display: inline-block;
+            width: 100%;
         }
         button:hover {
-            background-color: #ff4d4d;
+            background-color: #555;
         }
-        .hidden {
-            display: none;
+        ul {
+            list-style: none;
+            padding: 0;
         }
-        .error {
-            color: red;
-            text-align: center;
-            margin-top: 10px;
-        }
-        .report-item {
-            margin-bottom: 15px;
+        li {
             padding: 10px;
-            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            background-color: #2e2e2e;
             border-radius: 5px;
-            background-color: #f9f9f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .counter {
-            text-align: center;
-            margin-top: 10px;
-            font-size: 18px;
-            color: #004d40;
+        .delete-btn {
+            background-color: #555;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .delete-btn:hover {
+            background-color: #777;
         }
     </style>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -95,30 +98,27 @@
     <div id="convidados-form" class="hidden">
         <h2 id="aluno-nome"></h2>
         <h3>Escolha seus convidados</h3>
-        <div id="convidados-container">
-            <div class="form-group">
-                <label for="posto0">Posto/Graduação:</label>
-                <select id="posto0">
-                    <option value="Sd">Sd</option>
-                    <option value="Cb">Cb</option>
-                    <option value="Sgt">Sgt</option>
-                    <option value="ST">ST</option>
-                    <option value="Ten">Ten</option>
-                    <option value="CAP">CAP</option>
-                    <option value="MAJ">MAJ</option>
-                    <option value="TC">TC</option>
-                    <option value="CEL">CEL</option>
-                </select>
-                <label for="nome0">Nome do Convidado:</label>
-                <input type="text" id="nome0" placeholder="Digite o nome completo">
-                <div>
-                    <label for="acompanhante0">Acompanhante:</label>
-                    <input type="checkbox" id="acompanhante0" onchange="atualizarContador()">
-                </div>
-            </div>
+        <div class="form-group">
+            <label for="posto0">Posto/Graduação:</label>
+            <select id="posto0">
+                <option value="Sd">Sd</option>
+                <option value="Cb">Cb</option>
+                <option value="Sgt">Sgt</option>
+                <option value="ST">ST</option>
+                <option value="Ten">Ten</option>
+                <option value="CAP">CAP</option>
+                <option value="MAJ">MAJ</option>
+                <option value="TC">TC</option>
+                <option value="CEL">CEL</option>
+            </select>
+            <label for="nome0">Nome do Convidado:</label>
+            <input type="text" id="nome0" placeholder="Digite o nome completo">
         </div>
-        <button onclick="adicionarConvidado()">+ Outro</button>
-        <div class="counter">Contagem de convidados: <span id="convidados-counter">0</span></div>
+        <button onclick="adicionarConvidado()">Adicionar Convidado</button>
+
+        <h3>Meus Convidados</h3>
+        <ul id="meus-convidados"></ul>
+
         <div style="display: flex; justify-content: space-between;">
             <button onclick="salvarConvidados()">Salvar</button>
             <button onclick="gerarRetaguarda()">Relatório</button>
@@ -134,20 +134,20 @@
 
 <script>
     // Configuração do Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
-        authDomain: "convites-7dd28.firebaseapp.com",
-        projectId: "convites-7dd28",
-        storageBucket: "convites-7dd28.appspot.com",
-        messagingSenderId: "294544246887",
-        appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
-        measurementId: "G-HGFP0YSMLV"
-    };
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
+  authDomain: "convites-7dd28.firebaseapp.com",
+  projectId: "convites-7dd28",
+  storageBucket: "convites-7dd28.firebasestorage.app",
+  messagingSenderId: "294544246887",
+  appId: "1:294544246887:web:cf3d26af4df0bcff2cecc2",
+  measurementId: "G-HGFP0YSMLV"
+};
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    const alunos = {
-        "9287027": "ELIENAR FARIAS",
+    const alunos = { "9287027": "ELIENAR FARIAS",
         "9306820": "NAZARETH LIMA GOEDERT",
         "9303219": "CARLA DE LUCA LINHARES",
         "9287124": "LEANDRO GHELLERE",
@@ -181,12 +181,10 @@
         "9330356": "BRUNA DA SILVA PIRES",
         "3847446": "DAIANA PEREIRA",
         "9329056": "VINICIUS JOVELINO COSTA",
-        "9339477": "DANIEL SERAFIM PESSI"
-    };
+        "9339477": "DANIEL SERAFIM PESSI" };
 
     let matriculaAtual = "";
     let nomeAlunoAtual = "";
-    let convidados = [];
 
     function login() {
         const matriculaInput = document.getElementById('matricula').value.trim();
@@ -197,69 +195,56 @@
             document.getElementById('aluno-nome').textContent = `Bem-vindo(a), ${nomeAlunoAtual}`;
             document.getElementById('login-form').classList.add('hidden');
             document.getElementById('convidados-form').classList.remove('hidden');
-            errorDiv.classList.add('hidden');
-            atualizarContador();
+            carregarConvidados();
         } else {
             errorDiv.classList.remove('hidden');
         }
     }
 
     function adicionarConvidado() {
-        const container = document.getElementById('convidados-container');
-        const div = document.createElement('div');
-        div.className = 'form-group';
-        div.innerHTML = `
-            <label>Posto/Graduação:</label>
-            <select>
-                <option value="Sd">Sd</option>
-                <option value="Cb">Cb</option>
-                <option value="Sgt">Sgt</option>
-                <option value="ST">ST</option>
-                <option value="Ten">Ten</option>
-                <option value="CAP">CAP</option>
-                <option value="MAJ">MAJ</option>
-                <option value="TC">TC</option>
-                <option value="CEL">CEL</option>
-            </select>
-            <label>Nome do Convidado:</label>
-            <input type="text" placeholder="Digite o nome completo">
-            <div>
-                <label>Acompanhante:</label>
-                <input type="checkbox" onchange="atualizarContador()">
-            </div>
-        `;
-        container.appendChild(div);
-        atualizarContador();
+        const posto = document.getElementById('posto0').value;
+        const nome = document.getElementById('nome0').value.trim();
+        if (!nome) {
+            alert("Por favor, insira o nome de Guerra convidado.");
+            return;
+        }
+        const lista = document.getElementById('meus-convidados');
+        const li = document.createElement('li');
+        li.innerHTML = `${posto} - ${nome} <button class="delete-btn" onclick="removerConvidado(this)">Excluir</button>`;
+        lista.appendChild(li);
+        document.getElementById('nome0').value = "";
     }
 
-    function atualizarContador() {
-        const container = document.getElementById('convidados-container');
-        const count = Array.from(container.getElementsByClassName('form-group')).reduce((total, group) => {
-            const checkbox = group.querySelector('input[type="checkbox"]');
-            const nomeInput = group.querySelector('input[type="text"]');
-            if (nomeInput.value.trim()) {
-                return total + (checkbox.checked ? 2 : 1);
+    function removerConvidado(btn) {
+        const li = btn.parentElement;
+        li.remove();
+    }
+
+    async function carregarConvidados() {
+        try {
+            const doc = await db.collection('convidados').doc(matriculaAtual).get();
+            if (doc.exists) {
+                const data = doc.data();
+                const lista = document.getElementById('meus-convidados');
+                lista.innerHTML = '';
+                data.convidados.forEach(convidado => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `${convidado.posto} - ${convidado.nome} <button class="delete-btn" onclick="removerConvidado(this)">Excluir</button>`;
+                    lista.appendChild(li);
+                });
             }
-            return total;
-        }, 0);
-        document.getElementById('convidados-counter').textContent = count;
+        } catch (error) {
+            console.error("Erro ao carregar convidados:", error);
+        }
     }
 
     async function salvarConvidados() {
-        const container = document.getElementById('convidados-container');
-        const convidados = [];
-        container.querySelectorAll('.form-group').forEach(group => {
-            const posto = group.querySelector('select').value;
-            const nome = group.querySelector('input[type="text"]').value.trim();
-            const acompanhante = group.querySelector('input[type="checkbox"]').checked;
-            if (nome) {
-                convidados.push({ posto, nome, acompanhante });
-            }
+        const lista = document.getElementById('meus-convidados');
+        const convidados = Array.from(lista.children).map(li => {
+            const [posto, nome] = li.textContent.split(" - ");
+            return { posto, nome: nome.replace("Excluir", "").trim() };
         });
-        await db.collection('convidados').doc(matriculaAtual).set({
-            aluno: nomeAlunoAtual,
-            convidados
-        });
+        await db.collection('convidados').doc(matriculaAtual).set({ aluno: nomeAlunoAtual, convidados });
         alert("Convidados salvos com sucesso!");
     }
 
@@ -315,6 +300,7 @@
     function ocultarRelatorio() {
         document.getElementById('retaguarda').classList.add('hidden');
     }
+
 </script>
 </body>
 </html>
