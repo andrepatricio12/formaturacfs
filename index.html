@@ -189,7 +189,7 @@
             const posto = document.getElementById('posto0').value;
             const nome = formatarNome(document.getElementById('nome0').value.trim());
             if (!nome) {
-                alert("Por favor, insira o nome do convidado.");
+                alert("Por favor, insira o nome de Guerra do convidado.");
                 return;
             }
             const lista = document.getElementById('meus-convidados');
@@ -325,7 +325,7 @@ async function atualizarConvidadosFirestore(nomeConvidado) {
                 <option value="TC">TC</option>
                 <option value="CEL">CEL</option>
             </select>
-            <label for="nome0">Nome do Convidado:</label>
+            <label for="nome0">Nome de Guerra do Convidado:</label>
             <input type="text" id="nome0" placeholder="Digite o nome">
         </div>
         <button onclick="adicionarConvidado()">Adicionar Convidado</button>
