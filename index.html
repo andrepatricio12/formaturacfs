@@ -187,29 +187,30 @@
         }
 
         function adicionarConvidado() {
-            const posto = document.getElementById('posto0').value;
-            const nome = formatarNome(document.getElementById('nome0').value.trim());
-            const levaAcompanhante = document.getElementById('acompanhante').checked; // Verifica se o checkbox está marcado
-            if (!nome) {
-                alert("Por favor, insira o nome de Guerra do convidado.");
-                return;
-            }
+    const posto = document.getElementById('posto0').value;
+    const nome = formatarNome(document.getElementById('nome0').value.trim());
+    const levaAcompanhante = document.getElementById('acompanhante').checked; // Verifica se o checkbox está marcado
+    if (!nome) {
+        alert("Por favor, insira o nome de Guerra do convidado.");
+        return;
+    }
 
-            const lista = document.getElementById('meus-convidados');
-            const li = document.createElement('li');
-            li.innerHTML = `
-                ${posto} - ${nome} 
-                <span class="delete-btn" onclick="removerConvidado(this)">Excluir</span>
-            `;
-            lista.appendChild(li);
+    const lista = document.getElementById('meus-convidados');
+    const li = document.createElement('li');
+    li.innerHTML = `
+        ${posto} - ${nome} ${levaAcompanhante ? "(Levará acompanhante)" : ""} 
+        <span class="delete-btn" onclick="removerConvidado(this)">Excluir</span>
+    `;
+    lista.appendChild(li);
 
-            // Incrementa o contador de convidados
-            contadorConvidados += levaAcompanhante ? 2 : 1;
-            atualizarContador();
+    // Incrementa o contador de convidados, considerando acompanhantes
+    contadorConvidados += levaAcompanhante ? 2 : 1;
+    atualizarContador();
 
-            document.getElementById('nome0').value = "";
-            document.getElementById('acompanhante').checked = false; // Reseta o checkbox de acompanhante
-        }
+    document.getElementById('nome0').value = "";
+    document.getElementById('acompanhante').checked = false; // Reseta o checkbox de acompanhante
+}
+
 
         function atualizarContador() {
             const contador = document.getElementById('contador-convidados');
@@ -233,44 +234,51 @@
             }
         }
 
-        async function salvarConvidados() {
-            const lista = document.getElementById('meus-convidados');
-            const convidados = Array.from(lista.children).map(li => {
-                const [posto, nome] = li.textContent.split(" - ");
-                return { posto, nome: nome.replace("Excluir", "").trim() };
-            });
-            await db.collection('convidados').doc(matriculaAtual).set({ aluno: nomeAlunoAtual, convidados });
-            alert("Convidados salvos com sucesso!");
-        }
+       async function salvarConvidados() {
+    const lista = document.getElementById('meus-convidados');
+    const convidados = Array.from(lista.children).map(li => {
+        const [posto, nome] = li.textContent.split(" - ");
+        const levaAcompanhante = li.textContent.includes("(Levará acompanhante)");
+        return { posto, nome: nome.replace("Excluir", "").trim(), levaAcompanhante };
+    });
+    await db.collection('convidados').doc(matriculaAtual).set({ aluno: nomeAlunoAtual, convidados });
+    alert("Convidados salvos com sucesso!");
+}
+
 
         async function gerarRetaguarda() {
-            const snapshot = await db.collection('convidados').get();
-            const reportDiv = document.getElementById('convidados-report');
-            reportDiv.innerHTML = "";
-            const reportData = {};
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                data.convidados.forEach(convidado => {
-                    const nomeFormatado = formatarNome(convidado.nome);
-                    if (!reportData[nomeFormatado]) {
-                        reportData[nomeFormatado] = { count: 0, convidadosPor: [] };
-                    }
-                    reportData[nomeFormatado].count++;
-                    reportData[nomeFormatado].convidadosPor.push(data.aluno);
-                });
-            });
-            for (const [nome, info] of Object.entries(reportData)) {
-                const item = document.createElement('div');
-                item.className = 'report-item';
-                item.innerHTML = `
-                    <strong>${formatarNome(nome)}</strong><br>
-                    Quantidade de convites: ${info.count}<br>
-                    Convidado por: ${info.convidadosPor.map(formatarNome).join(", ")}
-                `;
-                reportDiv.appendChild(item);
+    const snapshot = await db.collection('convidados').get();
+    const reportDiv = document.getElementById('convidados-report');
+    reportDiv.innerHTML = "";
+    const reportData = {};
+    snapshot.forEach(doc => {
+        const data = doc.data();
+        data.convidados.forEach(convidado => {
+            const nomeFormatado = formatarNome(convidado.nome);
+            if (!reportData[nomeFormatado]) {
+                reportData[nomeFormatado] = { count: 0, convidadosPor: [], acompanhante: false };
             }
-            document.getElementById('retaguarda').classList.remove('hidden');
-        }
+            reportData[nomeFormatado].count++;
+            reportData[nomeFormatado].convidadosPor.push(data.aluno);
+            if (convidado.levaAcompanhante) {
+                reportData[nomeFormatado].acompanhante = true;
+            }
+        });
+    });
+    for (const [nome, info] of Object.entries(reportData)) {
+        const item = document.createElement('div');
+        item.className = 'report-item';
+        item.innerHTML = `
+            <strong>${formatarNome(nome)}</strong><br>
+            Quantidade de convites: ${info.count}<br>
+            Convidado por: ${info.convidadosPor.map(formatarNome).join(", ")}<br>
+            ${info.acompanhante ? "Levará acompanhante." : "Não levará acompanhante."}
+        `;
+        reportDiv.appendChild(item);
+    }
+    document.getElementById('retaguarda').classList.remove('hidden');
+}
+
 
         function removerConvidado(btn) {
             // Encontrando o elemento `li` do convidado
