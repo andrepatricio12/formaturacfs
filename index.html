@@ -258,6 +258,43 @@
 
             document.getElementById('retaguarda').classList.remove('hidden');
         }
+        function removerConvidado(btn) {
+    // Encontrando o elemento `li` do convidado
+    const li = btn.parentElement;
+    const nomeConvidado = li.textContent.split(" - ")[1].replace("Excluir", "").trim(); // Obtendo nome do convidado
+
+    // Remover o item da lista do DOM
+    li.remove();
+
+    // Atualizar a lista no Firestore
+    atualizarConvidadosFirestore(nomeConvidado);
+}
+
+async function atualizarConvidadosFirestore(nomeConvidado) {
+    try {
+        const docRef = db.collection('convidados').doc(matriculaAtual);
+        const doc = await docRef.get();
+        
+        if (doc.exists) {
+            const data = doc.data();
+            // Filtrando os convidados para remover o excluído
+            const convidadosAtualizados = data.convidados.filter(convidado => convidado.nome !== nomeConvidado);
+
+            // Atualizando o Firestore com a lista atualizada
+            await docRef.set({
+                aluno: nomeAlunoAtual,
+                convidados: convidadosAtualizados
+            });
+
+            alert("Convidado excluído com sucesso!");
+        } else {
+            alert("Erro: Dados não encontrados no Firestore.");
+        }
+    } catch (error) {
+        console.error("Erro ao atualizar Firestore:", error);
+    }
+}
+
 
         function ocultarRelatorio() {
             document.getElementById('retaguarda').classList.add('hidden');
