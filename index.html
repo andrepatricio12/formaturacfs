@@ -39,17 +39,19 @@
             border-radius: 5px;
             border: 1px solid #ddd;
         }
-        #login-form button {
-            padding: 8px;
-            display: inline-block;
-            background-color: #333;
-            color: #ffffff;
-            border: none;
+        #login-form button, button {
+            padding: 10px;
+            font-size: 1rem;
+            margin-top: 10px;
+            width: 100%;
             border-radius: 5px;
+            border: none;
             cursor: pointer;
+            background-color: #333; /* Preto */
+            color: white;
         }
-        #login-form button:hover {
-            background-color: #555;
+        button:hover {
+            background-color: #555; /* Cinza escuro */
         }
         .form-group input, .form-group select {
             padding: 8px;
@@ -93,20 +95,6 @@
             border-radius: 5px;
             background-color: #f9f9f9;
         }
-        button {
-            padding: 10px;
-            font-size: 1rem;
-            margin-top: 10px;
-            width: 100%;
-            border-radius: 5px;
-            border: none;
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
         @media (max-width: 600px) {
             body {
                 padding: 10px;
@@ -123,7 +111,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script>
-        // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAZzrttPeX60p_klInzVrL1qeQycYWhf48",
             authDomain: "convites-7dd28.firebaseapp.com",
@@ -177,6 +164,12 @@
         let matriculaAtual = "";
         let nomeAlunoAtual = "";
 
+        function formatarNome(nome) {
+            return nome.split(" ")
+                .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1).toLowerCase())
+                .join(" ");
+        }
+
         function login() {
             const matriculaInput = document.getElementById('matricula').value.trim();
             const errorDiv = document.getElementById('login-error');
@@ -190,9 +183,8 @@
             } else {
                 errorDiv.classList.remove('hidden');
             }
-        }
-
-        function adicionarConvidado() {
+            
+        }  function adicionarConvidado() {
             const posto = document.getElementById('posto0').value;
             const nome = document.getElementById('nome0').value.trim();
             if (!nome) {
@@ -201,10 +193,10 @@
             }
             const lista = document.getElementById('meus-convidados');
             const li = document.createElement('li');
-            li.innerHTML = `
+            li.innerHTML = 
                 ${posto} - ${nome} 
                 <span class="delete-btn" onclick="removerConvidado(this)">Excluir</span>
-            `;
+            ;
             lista.appendChild(li);
             document.getElementById('nome0').value = "";
         }
@@ -221,10 +213,10 @@
                 lista.innerHTML = '';
                 data.convidados.forEach(convidado => {
                     const li = document.createElement('li');
-                    li.innerHTML = `
+                    li.innerHTML = 
                         ${convidado.posto} - ${convidado.nome} 
                         <span class="delete-btn" onclick="removerConvidado(this)">Excluir</span>
-                    `;
+                    ;
                     lista.appendChild(li);
                 });
             }
@@ -248,21 +240,21 @@
             snapshot.forEach(doc => {
                 const data = doc.data();
                 data.convidados.forEach(convidado => {
-                    const key = `${convidado.posto} - ${convidado.nome}`;
-                    if (!reportData[key]) {
-                        reportData[key] = { count: 0, convidadosPor: [] };
+                    const nomeFormatado = formatarNome(convidado.nome);
+                    if (!reportData[nomeFormatado]) {
+                        reportData[nomeFormatado] = { count: 0, convidadosPor: [] };
                     }
-                    reportData[key].count++;
-                    reportData[key].convidadosPor.push(data.aluno);
+                    reportData[nomeFormatado].count++;
+                    reportData[nomeFormatado].convidadosPor.push(data.aluno);
                 });
             });
-            for (const [convidado, info] of Object.entries(reportData)) {
+            for (const [nome, info] of Object.entries(reportData)) {
                 const item = document.createElement('div');
                 item.className = 'report-item';
                 item.innerHTML = `
-                    <strong>${convidado}</strong><br>
+                    <strong>${nome}</strong><br>
                     Quantidade de convites: ${info.count}<br>
-                    Convidado por: ${info.convidadosPor.join(", ")}
+                    Convidado por: ${info.convidadosPor.map(formatarNome).join(", ")}
                 `;
                 reportDiv.appendChild(item);
             }
@@ -291,7 +283,7 @@
                 <option value="Sd">Sd</option>
                 <option value="Cb">Cb</option>
                 <option value="Sgt">Sgt</option>
-                <option value="ST">ST</option>
+                 <option value="ST">ST</option>
                 <option value="Ten">Ten</option>
                 <option value="CAP">CAP</option>
                 <option value="MAJ">MAJ</option>
@@ -301,10 +293,7 @@
             <label for="nome0">Nome do Convidado:</label>
             <input type="text" id="nome0" placeholder="Digite o nome">
         </div>
-        <button onclick="adicionarConvidado()">Adicionar Convidado</button>
-        <ul id="meus-convidados"></ul>
-        <button onclick="salvarConvidados()">Salvar</button>
-        <button onclick="gerarRetaguarda()">Exibir Relatório</button> <!-- Botão para relatório -->
+        <button onclick="gerarRetaguarda()">Exibir Relatório</button>
     </div>
     <div id="retaguarda" class="hidden">
         <h2>Relatório de Convidados</h2>
