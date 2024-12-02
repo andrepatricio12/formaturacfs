@@ -213,9 +213,10 @@
 
 
         function atualizarContador() {
-            const contador = document.getElementById('contador-convidados');
-            contador.textContent = `Número de Convidados: ${contadorConvidados}`;
-        }
+    const contador = document.getElementById('contador-convidados');
+    contador.textContent = `Número de Convidados: ${contadorConvidados}`;
+}
+
 
         async function carregarConvidados() {
             const doc = await db.collection('convidados').doc(matriculaAtual).get();
@@ -233,6 +234,29 @@
                 });
             }
         }
+        async function carregarConvidados() {
+    const doc = await db.collection('convidados').doc(matriculaAtual).get();
+    if (doc.exists) {
+        const data = doc.data();
+        const lista = document.getElementById('meus-convidados');
+        lista.innerHTML = '';
+
+        // Atualiza o contador de convidados
+        contadorConvidados = data.numeroConvidados || 0;  // Usa o contador salvo no Firestore
+        atualizarContador();
+
+        data.convidados.forEach(convidado => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                ${convidado.posto} - ${formatarNome(convidado.nome)} 
+                ${convidado.levaAcompanhante ? "(Levará acompanhante)" : ""}
+                <span class="delete-btn" onclick="removerConvidado(this)">Excluir</span>
+            `;
+            lista.appendChild(li);
+        });
+    }
+}
+
 
        async function salvarConvidados() {
     const lista = document.getElementById('meus-convidados');
@@ -241,10 +265,19 @@
         const levaAcompanhante = li.textContent.includes("(Levará acompanhante)");
         return { posto, nome: nome.replace("Excluir", "").trim(), levaAcompanhante };
     });
-    await db.collection('convidados').doc(matriculaAtual).set({ aluno: nomeAlunoAtual, convidados });
+    
+    // Contar o número de convidados, considerando os acompanhantes
+    const numeroConvidados = convidados.reduce((total, convidado) => total + (convidado.levaAcompanhante ? 2 : 1), 0);
+    
+    // Salvar os convidados e o número total de convidados
+    await db.collection('convidados').doc(matriculaAtual).set({
+        aluno: nomeAlunoAtual,
+        convidados: convidados,
+        numeroConvidados: numeroConvidados  // Salvar o contador de convidados
+    });
+
     alert("Convidados salvos com sucesso!");
 }
-
 
         async function gerarRetaguarda() {
     const snapshot = await db.collection('convidados').get();
@@ -281,45 +314,52 @@
 
 
         function removerConvidado(btn) {
-            // Encontrando o elemento `li` do convidado
-            const li = btn.parentElement;
-            const nomeConvidado = li.textContent.split(" - ")[1].replace("Excluir", "").trim(); // Obtendo nome do convidado
+    // Encontrando o elemento `li` do convidado
+    const li = btn.parentElement;
+    const nomeConvidado = li.textContent.split(" - ")[1].replace("Excluir", "").trim(); // Obtendo nome do convidado
+    const levaAcompanhante = li.textContent.includes("(Levará acompanhante)");
 
-            // Remover o item da lista do DOM
-            li.remove();
+    // Remover o item da lista do DOM
+    li.remove();
 
-            // Atualizar o contador de convidados
-            contadorConvidados--; // Subtrai 1, pois estamos removendo um convidado
-            atualizarContador();
+    // Atualizar o contador de convidados
+    contadorConvidados -= levaAcompanhante ? 2 : 1;  // Decrementa corretamente o contador
+    atualizarContador();
 
-            // Atualizar a lista no Firestore
-            atualizarConvidadosFirestore(nomeConvidado);
-        }
+    // Atualizar a lista no Firestore
+    atualizarConvidadosFirestore(nomeConvidado);
+}
+
 
         async function atualizarConvidadosFirestore(nomeConvidado) {
-            try {
-                const docRef = db.collection('convidados').doc(matriculaAtual);
-                const doc = await docRef.get();
+    try {
+        const docRef = db.collection('convidados').doc(matriculaAtual);
+        const doc = await docRef.get();
+        
+        if (doc.exists) {
+            const data = doc.data();
+            // Filtrando os convidados para remover o excluído
+            const convidadosAtualizados = data.convidados.filter(convidado => convidado.nome !== nomeConvidado);
 
-                if (doc.exists) {
-                    const data = doc.data();
-                    // Filtrando os convidados para remover o excluído
-                    const convidadosAtualizados = data.convidados.filter(convidado => convidado.nome !== nomeConvidado);
+            // Contando o número de convidados restantes, considerando acompanhantes
+            const numeroConvidados = convidadosAtualizados.reduce((total, convidado) => total + (convidado.levaAcompanhante ? 2 : 1), 0);
 
-                    // Atualizando o Firestore com a lista atualizada
-                    await docRef.set({
-                        aluno: nomeAlunoAtual,
-                        convidados: convidadosAtualizados
-                    });
+            // Atualizando o Firestore com a lista atualizada e o novo contador
+            await docRef.set({
+                aluno: nomeAlunoAtual,
+                convidados: convidadosAtualizados,
+                numeroConvidados: numeroConvidados  // Atualizando o contador no Firestore
+            });
 
-                    alert("Convidado excluído com sucesso!");
-                } else {
-                    alert("Erro: Dados não encontrados no Firestore.");
-                }
-            } catch (error) {
-                console.error("Erro ao atualizar Firestore:", error);
-            }
+            alert("Convidado excluído com sucesso!");
+        } else {
+            alert("Erro: Dados não encontrados no Firestore.");
         }
+    } catch (error) {
+        console.error("Erro ao atualizar Firestore:", error);
+    }
+}
+
 
         function ocultarRelatorio() {
             document.getElementById('retaguarda').classList.add('hidden');
